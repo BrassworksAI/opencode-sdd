@@ -1,4 +1,4 @@
-# OpenCode SDD
+# [OpenCode](https://opencode.ai) SDD
 
 **Speed without direction is just chaos with velocity.**
 
@@ -52,7 +52,7 @@ irm https://raw.githubusercontent.com/BrassworksAI/opencode-sdd/main/uninstall.p
 
 ## Getting Started
 
-After installation, open [OpenCode](https://opencode.ai) and run:
+After installation, execute OpenCode and run:
 
 ```
 /sdd/explain
