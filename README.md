@@ -1,4 +1,4 @@
-# [OpenCode](https://opencode.ai) SDD
+# <a href="https://opencode.ai" target="_blank">OpenCode</a> SDD
 
 **Speed without direction is just chaos with velocity.**
 
