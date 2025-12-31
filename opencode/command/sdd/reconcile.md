@@ -1,94 +1,87 @@
 ---
-description: Validate that implementation matches canonical specs
+name: sdd/reconcile
+description: Verify implementation matches specifications
 agent: sdd/forge
 ---
 
-Validate that implementation matches canonical specs; generate delta specs if drift occurred.
+<skill>sdd-state-management</skill>
+<skill>spec-format</skill>
 
-## Usage
+# Reconcile
 
-- `/sdd/reconcile <change-name>`
+Verify that implementation matches the delta specifications.
 
-## Requirements
+## Arguments
 
-- `<change-name>` is required.
-- `changes/<change-name>/` must exist.
-- All tasks in `tasks.md` must be marked `[x]` complete.
-- Phase must be `implementing` or later.
+- `$ARGUMENTS` - Change set name
 
-## Why Reconcile Is Required
+## Instructions
 
-Every lane (full, bug, quick) requires reconcile before finish because:
+### Setup
 
-1. **Implementation can drift**: Even well-planned implementations may introduce behavior not in the original specs.
-2. **Capability discovery**: Bug fixes and quick experiments often reveal capabilities that should be documented.
-3. **Spec-adjacency**: Reconcile ensures the canonical specs remain the source of truth for what the system does.
+1. Read `changes/<name>/state.md` - verify phase is `reconcile` and lane is `full`
+2. Read all delta specs from `changes/<name>/specs/`
+3. Read `changes/<name>/tasks.md` for context
 
-## What to do (forge)
+### Reconciliation Process
 
-1. Verify preconditions:
-   - All tasks in `tasks.md` are `[x]`
-   - Phase is `implementing` or later
+For each requirement in delta specs:
 
-2. Delegate to `sdd/reconciler` with:
+1. **Locate implementation**: Find the code that implements this requirement
+2. **Verify completeness**: Does the implementation fully satisfy the requirement?
+3. **Check acceptance criteria**: Are all criteria met?
+4. **Document finding**: Pass, fail, or partial
 
-**Mission**: Validate that implementation matches canonical specs. Generate delta specs if drift occurred.
+### Reconciliation Report
 
-**Inputs**:
-- `changes/<change-name>/proposal.md` (original intent)
-- `changes/<change-name>/tasks.md` (what we meant to do)
-- `changes/<change-name>/plans/**` (detailed plans)
-- `changes/<change-name>/loops/implement-*.md` (what we actually changed)
-- `docs/specs/**` (canonical truth)
-- `changes/<change-name>/specs/**` (existing delta specs, if any)
-
-**Outputs**:
-- `changes/<change-name>/loops/reconcile.md`
-- `changes/<change-name>/specs/**` (if drift detected)
-- `changes/<change-name>/state.md` (update `Reconcile.Status: complete`)
-
-3. Update phase to `reconciling`.
-
-4. Report:
-   - What was analyzed
-   - Whether drift was detected
-   - What delta specs were generated (if any)
-   - Next command: `/sdd/finish <change-name>`
-
-## Reconcile Outcomes
-
-### No Drift Detected
-
-Implementation matches existing canonical specs. No delta specs generated.
-
-**Next**: `/sdd/finish <change-name>` will proceed without sync.
-
-### Drift Detected
-
-Implementation introduced new or modified behavior. Delta specs generated via `sdd/specsmith` in reconcile mode.
-
-**Review**: Check `changes/<change-name>/specs/**` for generated delta specs.
-
-**Next**: `/sdd/finish <change-name>` will run sync to merge delta specs into canonical.
-
-## When Reconcile Generates Specs
-
-Reconciler invokes `sdd/specsmith` (in reconcile mode) when:
-
-- Bug fix revealed undocumented behavior that should be specified
-- Quick experiment introduced new capabilities worth preserving
-- Full lane implementation evolved beyond original delta specs
-- Implementation discovered edge cases not covered in original specs
-
-## State After Reconcile
+Create or update `changes/<name>/reconciliation.md`:
 
 ```markdown
-## Phase
+# Reconciliation: <name>
 
-reconciling
+## Summary
 
-## Reconcile
+X of Y requirements verified.
 
-- Required: yes
-- Status: complete
+## Findings
+
+### <REQ-ID>: <Title>
+
+**Status:** pass | fail | partial
+
+**Implementation:** `path/to/file.ts:123`
+
+**Notes:** Any relevant observations.
+
+---
+
+### <REQ-ID>: <Title>
+
+...
+
+## Unimplemented Requirements
+
+- <REQ-ID>: <reason>
+
+## Implementation Without Specs
+
+- `path/to/file.ts`: <description of unspecced change>
 ```
+
+### Handling Gaps
+
+**Unimplemented requirements:**
+- Return to tasks/plan/implement phases
+- Or: Remove requirement from specs (with rationale)
+
+**Implementation without specs:**
+- Add missing specs (return to specs phase)
+- Or: Remove the implementation
+- Or: Document as intentional (tech debt, etc.)
+
+### Completion
+
+When reconciliation passes (all requirements verified):
+
+1. Update state.md phase to `finish`
+2. Suggest running `/sdd/finish <name>`

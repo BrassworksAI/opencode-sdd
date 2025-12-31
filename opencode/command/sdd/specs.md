@@ -1,32 +1,80 @@
 ---
-description: Generate or revise delta specs for a change
+name: sdd/specs
+description: Write delta specifications for the change
 agent: sdd/forge
 ---
 
-Generate or revise delta specs under `changes/<change-name>/specs/**`.
+<skill>sdd-state-management</skill>
+<skill>spec-format</skill>
+<skill>counsel</skill>
+<skill>research</skill>
 
-## Usage
+# Specs
 
-- `/sdd/specs <change-name>`
+Write delta specifications for the change set.
 
-## What to do (forge)
+## Arguments
 
-1. Verify `changes/<change-name>/state.md` exists.
-2. Enforce gate: phase must be `proposal` or later.
-3. Delegate to `sdd/specsmith` via `task`.
+- `$ARGUMENTS` - Change set name
 
-### Subtask prompt
+## Instructions
 
-Provide:
-- change name
-- key inputs:
-  - `changes/<change-name>/proposal.md`
-  - existing `docs/specs/**` (if present)
-- constraints:
-  - artifact-only writes (only under `changes/<change-name>/`)
-  - follow delta spec format (load `skill("sdd-delta-format")`)
-  - consult `librarian` and `sdd/cartographer` as needed
-  - bounded critique loop with `archimedes`
-  - end every produced file with pinned `## User Feedback`
+### Setup
 
-4. On return, point the user to review `changes/<change-name>/specs/**`.
+1. Read `changes/<name>/state.md` - verify phase is `specs` and lane is `full`
+2. Read `changes/<name>/proposal.md` for context
+3. List existing `specs/` structure to understand current taxonomy
+
+### Research Phase
+
+Before writing specs, **research** using the `research` skill:
+
+1. **Consult librarian** to understand:
+   - Current spec structure and taxonomy
+   - Related existing capabilities
+   - How similar things are specified
+
+2. **Build context** for spec writing:
+   - What specs already exist in related areas
+   - What naming conventions are used
+   - What requirement ID ranges are in use
+
+### Consulting Cartographer
+
+With research in hand, consult Cartographer:
+
+> Use Task tool with `sdd/cartographer` agent.
+> Provide: proposal summary, current specs/ structure, research findings
+> Ask for: recommended paths for new capabilities, taxonomy placement
+
+### Writing Delta Specs
+
+Create specs in `changes/<name>/specs/` following the `spec-format` skill:
+
+1. **Identify capabilities** needed from the proposal
+2. **Determine paths** using Cartographer's guidance
+3. **Write requirements** using SHALL language
+4. **Include acceptance criteria** for each requirement
+
+### Spec Review
+
+For each spec file:
+- Ensure requirements are atomic (one SHALL per requirement)
+- Ensure requirements are testable
+- Ensure requirements are implementation-agnostic
+- Assign requirement IDs
+
+### Consulting Archimedes
+
+When specs are complete, consult Archimedes:
+
+> Use Task tool with `archimedes` agent.
+> Provide: all delta specs
+> Ask for: completeness check, contradiction detection, missing edge cases
+
+### Completion
+
+When specs pass review:
+
+1. Update state.md phase to `discovery`
+2. Suggest running `/sdd/discovery <name>`

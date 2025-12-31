@@ -1,91 +1,67 @@
 ---
-description: Close the change set and sync delta specs to canonical (if any)
+name: sdd/finish
+description: Close the change set and sync specs
 agent: sdd/forge
 ---
 
-Close the change set. If delta specs exist, sync them to canonical. Delete the change folder.
+<skill>sdd-state-management</skill>
+<skill>spec-format</skill>
 
-## Usage
+# Finish
 
-- `/sdd/finish <change-name>`
+Close the change set and sync delta specs to canonical.
 
-## Requirements
+## Arguments
 
-- `<change-name>` is required.
-- `changes/<change-name>/` must exist.
-- All tasks in `tasks.md` must be marked `[x]` complete.
-- `Reconcile.Status` must be `complete`.
+- `$ARGUMENTS` - Change set name
 
-## Why Finish Replaced Sync
+## Instructions
 
-`/sdd/finish` is now the mandatory pre-PR command for all lanes:
+### Setup
 
-1. **Reconcile gate**: Finish enforces that reconcile completed first.
-2. **Conditional sync**: Finish only runs sync if delta specs exist.
-3. **Clean closure**: Finish handles the full cleanup consistently across lanes.
+1. Read `changes/<name>/state.md` - verify phase is `finish`
+2. Verify prerequisites based on lane:
+   - **Full lane**: Reconciliation complete
+   - **Quick/Bug lane**: All tasks complete
 
-## What to do (forge)
+### Sync Delta Specs (Full Lane Only)
 
-1. Verify preconditions:
-   - All tasks in `tasks.md` are `[x]`
-   - `Reconcile.Status: complete`
+For each delta spec in `changes/<name>/specs/`:
 
-2. If preconditions fail:
-   - If tasks incomplete: "Complete all tasks first."
-   - If reconcile not complete: "Run `/sdd/reconcile <change-name>` first to validate specs match implementation."
+1. **Read the delta spec**
+2. **Apply to canonical**: 
+   - New capabilities: Create new file in `specs/`
+   - Modified requirements: Update existing file in `specs/`
+   - Removed requirements: Remove from existing file in `specs/`
+3. **Verify sync**: Ensure canonical reflects all changes
 
-3. Delegate to `sdd/finisher` with:
+### Update State
 
-**Mission**: Close the change set. Sync delta specs to canonical if they exist. Delete the change folder.
+Update `changes/<name>/state.md`:
 
-**Inputs**:
-- `changes/<change-name>/state.md`
-- `changes/<change-name>/specs/**` (delta specs, if any)
-- `changes/<change-name>/glossary.md` (delta glossary, if any)
-- `docs/specs/**` (canonical specs)
-- `docs/glossary.md` (canonical glossary)
+```markdown
+## Phase
 
-**Outputs**:
-- `changes/<change-name>/loops/finish.md`
-- `docs/specs/**` (updated if delta specs existed)
-- `docs/glossary.md` (updated if glossary delta existed)
-- Delete `changes/<change-name>/` on success
+complete
 
-4. Report:
-   - Whether sync was run (if delta specs existed)
-   - What canonical specs were updated
-   - Confirmation that change folder was deleted
-   - Next: Open PR / merge to main
+## Completed
 
-## Finish Outcomes
+<timestamp>
+```
 
-### With Delta Specs
+### Cleanup Options
 
-1. Run deterministic sync algorithm
-2. Merge delta specs into `docs/specs/**`
-3. Merge glossary delta into `docs/glossary.md` (if exists)
-4. Ask user to confirm deletion of change folder
-5. Delete `changes/<change-name>/`
+Ask user about cleanup preference:
 
-### Without Delta Specs
+1. **Keep all artifacts**: Leave `changes/<name>/` intact for history
+2. **Archive**: Move to `changes/archive/<name>/`
+3. **Remove**: Delete `changes/<name>/` (delta specs already synced)
 
-1. No canonical changes needed
-2. Ask user to confirm deletion of change folder
-3. Delete `changes/<change-name>/`
+### Summary Report
 
-## User Confirmation
+Provide completion summary:
 
-Before deleting the change folder, ask:
-
-> Ready to delete `changes/<change-name>/`? This cannot be undone.
-> - Delta specs synced: yes/no
-> - Canonical specs updated: [list of files]
-> 
-> Confirm deletion? (yes/no)
-
-## After Finish
-
-The change is complete:
-- Canonical specs in `docs/specs/**` reflect the implementation
-- Change artifacts under `changes/<change-name>/` are removed
-- Ready to open PR or merge to main
+- What was accomplished
+- Files changed
+- Specs added/modified/removed (full lane)
+- Any notes or follow-up items

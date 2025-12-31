@@ -1,50 +1,88 @@
 ---
-description: Draft or revise the proposal for a change
+name: sdd/proposal
+description: Draft and refine the change proposal
 agent: sdd/forge
 ---
 
-Draft or revise `changes/<change-name>/proposal.md`.
+<skill>sdd-state-management</skill>
+<skill>counsel</skill>
+<skill>research</skill>
 
-## Usage
+# Proposal
 
-- `/sdd/proposal <change-name>`
+Draft and refine the proposal document for a change set.
 
-## What to do (forge)
+## Arguments
 
-1. Verify `changes/<change-name>/state.md` exists.
-2. Verify phase gate allows proposal (phase is `initialized` or later).
-3. Delegate to `sdd/proposer` via `task`.
+- `$ARGUMENTS` - Change set name
 
-### Subtask prompt
+## Instructions
 
-Provide:
-- change name
-- lane (from state.md) — determines which proposal schema to use
-- relevant files:
-  - `changes/<change-name>/state.md`
-  - `changes/<change-name>/proposal.md` (if exists)
-  - `changes/<change-name>/loops/proposal.md` (if exists)
-- the user feedback contract: revise if `## User Feedback` is non-empty
-- bounded critique loop using `archimedes`
+### Setup
 
-4. On return, report what was created and ask for **explicit approval**:
+1. Read `changes/<name>/state.md` - verify phase is `proposal` (or `ideation` transitioning)
+2. Read `changes/<name>/seed.md` if exists (for context)
+3. Read `changes/<name>/proposal.md` if exists
 
-```
-Review `proposal.md` and respond:
-- **approve** — Proceed to next phase
-- **feedback** — Edit `## User Feedback` in proposal.md and rerun `/sdd/proposal`
-```
+### Research Phase (Recommended)
 
-5. **Do NOT proceed to downstream phases** until user explicitly approves.
+For non-trivial proposals, **research** using the `research` skill:
 
-6. When user approves (responds "approve", "yes", "looks good", etc.):
-   - Update `state.md`: set `Proposal.Status: approved`
-   - Report the next command (`/sdd/specs` for full lane)
+1. **Consult librarian** to understand:
+   - Does similar functionality already exist?
+   - What would this change interact with?
+   - Are there existing patterns or constraints to respect?
 
-## Approval Gate
+2. **Inform the proposal** with findings:
+   - Reference existing code/patterns in approach
+   - Note integration points
+   - Identify potential risks based on codebase structure
 
-The proposal is a collaboration checkpoint. A change name alone is never enough — the proposer researches, asks questions, and drafts a proposal that the user must review and approve.
+### Lane Selection
 
-`Proposal.Status` in state.md tracks this:
-- `draft` — Created but awaiting user approval
-- `approved` — User has approved; downstream phases can proceed
+If lane not yet selected, determine with user:
+
+| Lane | When to Use |
+|------|-------------|
+| `full` | New capabilities, architectural changes, complex features |
+| `quick` | Small enhancements to existing capabilities |
+| `bug` | Fixing incorrect behavior |
+
+Update state.md with selected lane.
+
+### Proposal Content
+
+Proposals are **freeform** - capture intent in whatever structure works. Common elements:
+
+- **Problem**: What problem are we solving?
+- **Goals**: What does success look like?
+- **Non-Goals**: What are we explicitly NOT doing?
+- **Approach**: High-level solution direction
+- **Risks**: What could go wrong?
+- **Definition of Done**: How do we know we're finished?
+
+For **bug lane**, also include:
+- **Current Behavior**: What's happening now
+- **Expected Behavior**: What should happen
+- **Reproduction Steps**: How to see the bug
+
+For **quick lane**, keep it lightweight - just enough to understand the change.
+
+### Consulting Archimedes
+
+For full lane proposals, consult Archimedes:
+
+> Use Task tool with `archimedes` agent.
+> Provide: proposal content
+> Ask for: contradictions, gaps, risk assessment, verdict
+
+Address any FAIL findings before proceeding.
+
+### Completion
+
+When proposal is approved:
+
+1. Update state.md phase:
+   - Full lane: `specs`
+   - Quick/Bug lane: `tasks`
+2. Suggest next command based on lane

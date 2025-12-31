@@ -1,153 +1,78 @@
 ---
-description: Initialize a bug fix (fast lane)
+name: sdd/bug
+description: Quick-start a bug fix change set
 agent: sdd/forge
 ---
 
-Initialize a bug fix SDD change set using the fast bug lane.
+<skill>sdd-state-management</skill>
 
-## Usage
+# Bug Fix
 
-- `/sdd/bug <change-name>`
+Quick-start a bug fix change set. This is a shortcut that initializes with bug lane defaults.
 
-## Requirements
+## Arguments
 
-- `<change-name>` is required.
-- `<change-name>` must be a safe folder name (recommend kebab-case). Reject path separators.
-- `changes/<change-name>/` must not already exist.
+- `$ARGUMENTS` - Name for the bug fix (kebab-case)
 
-## When to Use
+## Instructions
 
-- Bug fixes
-- Regression repairs
-- Restoring documented behavior
-- Critical production issues (use with auto mode for speed)
+### Initialize
 
-## What to do (forge)
+1. Create `changes/<name>/` structure
+2. Initialize state.md with bug lane:
+   ```markdown
+   # SDD State: <name>
 
-### First Run (or when `Proposal.Status: draft`)
+   ## Phase
 
-1. Create the folder structure (if not exists):
-   - `changes/<change-name>/`
-   - `changes/<change-name>/specs/`
-   - `changes/<change-name>/thoughts/`
-   - `changes/<change-name>/plans/`
-   - `changes/<change-name>/loops/`
+   proposal
 
-2. Create `changes/<change-name>/state.md` with:
+   ## Lane
+
+   bug
+
+   ## Pending
+
+   - Fill in bug details in proposal.md
+   ```
+
+### Proposal Template
+
+Create `changes/<name>/proposal.md` with bug-specific template:
 
 ```markdown
-# SDD State: <change-name>
+# Bug Fix: <name>
 
-## Phase
+## Current Behavior
 
-proposal
+What is happening now (the bug).
 
-## Lane
+## Expected Behavior
 
-bug
+What should happen instead.
 
-## Run Mode
+## Reproduction Steps
 
-manual
+1. Step to reproduce
+2. ...
 
-## Current Task
+## Root Cause
 
-none
+(To be filled in after investigation)
 
-## Proposal
+## Fix Approach
 
-- Status: draft
+(To be filled in after investigation)
 
-## Reconcile
+## Validation
 
-- Required: yes
-- Status: pending
-
-## Pointers
-
-- Proposal: `proposal.md`
-- Specs: `specs/**`
-- Discovery: `thoughts/**`
-- Tasks: `tasks.md`
-- Plans: `plans/**`
-
-## Taxonomy Decisions
-
-
-## Architecture Decisions
-
-
-## Finish Status
-
-not-ready
-
-## Notes
-
-
+How to verify the fix works.
 ```
 
-3. Delegate to `sdd/proposer` with bug proposal schema:
-   - Symptom (what's broken)
-   - Expected vs Actual
-   - Repro steps
-   - Links (ticket, logs, screenshots)
-   - Root-cause hypothesis (optional)
-   - Risk/Rollback
-   - Definition of Done
+### Next Steps
 
-4. **STOP and ask user**: "Proposal ready. Approve and proceed? (yes/no)"
-   - If user says no or wants changes: instruct them to edit `proposal.md` and rerun `/sdd/bug <change-name>`
-   - If user says yes: proceed to "After Approval" steps below
-
-### After Approval (when user approves)
-
-5. Update `state.md`:
-   - `Proposal.Status: approved`
-
-6. Delegate to `sdd/quick-tasker` to generate `tasks.md` from proposal.
-
-7. Delegate to `sdd/planner` to generate `plans/01.md`.
-
-8. Update `state.md`:
-   - `Phase: implementing`
-   - `Current Task: 01`
-
-9. Report:
-   - Artifacts created: `state.md`, `proposal.md`, `tasks.md`, `plans/01.md`
-   - Next command: `/sdd/implement <change-name> 01`
-   - After implementation: `/sdd/reconcile <change-name>` → `/sdd/finish <change-name>`
-
-10. If `Run Mode: auto`, proceed directly into `/sdd/implement <change-name> 01`.
-
-## Auto Mode
-
-To use auto mode:
-
-1. Run `/sdd/bug <change-name>` — this creates the proposal
-2. Review and refine `proposal.md` as needed
-3. Edit `state.md` and set `Run Mode: auto`
-4. When ready, approve the proposal (say "yes" or "approve")
-5. System will then:
-   - Generate tasks and plan
-   - Proceed through implement with validation retry loop (max 20 cycles)
-   - Stop before `/sdd/reconcile` (reconcile and finish are always manual)
-
-**Key point**: Auto mode only kicks in *after* proposal approval. A change name alone is never enough.
-
-## Why Specs Are Optional
-
-Bug fixes typically restore *expected behavior* that should already be documented in specs. The reconcile phase validates whether the fix:
-- Simply restored documented behavior (no spec changes needed)
-- Introduced new behavior or capabilities (delta specs generated)
-- Fixed an undocumented edge case (delta specs generated to document it)
-
-## Differences from Full Lane
-
-| Aspect | Full Lane | Bug Lane |
-|--------|-----------|----------|
-| Specs up front | Required | Not required |
-| Discovery | Required | Skipped |
-| Tasks derived from | Delta specs | Proposal (acceptance criteria) |
-| Proposal approval | Required before specs | Required before tasks |
-| Reconcile | Required | Required |
-| Finish | Required | Required |
+Guide user to:
+1. Fill in current/expected behavior
+2. Investigate root cause
+3. Document fix approach
+4. Run `/sdd/tasks <name>` when ready

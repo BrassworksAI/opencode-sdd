@@ -1,79 +1,63 @@
 ---
-description: Initialize a new SDD change set folder
+name: sdd/init
+description: Initialize a new SDD change set
 agent: sdd/forge
 ---
 
-Initialize an SDD change set.
+<skill>sdd-state-management</skill>
 
-## Usage
+# Initialize Change Set
 
-- `/sdd/init <change-name>`
+Create a new SDD change set with the given name.
 
-## Requirements
+## Arguments
 
-- `<change-name>` is required.
-- `<change-name>` must be a safe folder name (recommend kebab-case). Reject path separators.
+- `$ARGUMENTS` - Name for the change set (kebab-case)
 
-## What to do (forge)
+## Instructions
 
-1. Create the folder structure:
-   - `changes/<change-name>/`
-   - `changes/<change-name>/specs/`
-   - `changes/<change-name>/thoughts/`
-   - `changes/<change-name>/plans/`
-   - `changes/<change-name>/loops/`
+1. **Validate name**: Ensure name is kebab-case, no spaces, lowercase
+2. **Check for conflicts**: Verify `changes/<name>/` doesn't already exist
+3. **Create structure**:
+   ```
+   changes/<name>/
+     state.md
+     proposal.md
+   ```
+4. **Initialize state.md**:
+   ```markdown
+   # SDD State: <name>
 
-2. Create `changes/<change-name>/state.md` with:
+   ## Phase
 
-```markdown
-# SDD State: <change-name>
+   ideation
 
-## Phase
+   ## Lane
 
-initialized
+   (not yet selected)
 
-## Lane
+   ## Pending
 
-full
+   - Select lane (full/quick/bug) during proposal
+   ```
+5. **Initialize proposal.md** with empty template:
+   ```markdown
+   # Proposal: <name>
 
-## Run Mode
+   ## Problem
 
-manual
+   (What problem are we solving?)
 
-## Current Task
+   ## Goals
 
-none
+   (What does success look like?)
 
-## Proposal
+   ## Non-Goals
 
-- Status: draft
+   (What are we explicitly NOT doing?)
 
-## Reconcile
+   ## Approach
 
-- Required: yes
-- Status: pending
-
-## Pointers
-
-- Proposal: `proposal.md`
-- Specs: `specs/**`
-- Discovery: `thoughts/**`
-- Tasks: `tasks.md`
-- Plans: `plans/**`
-
-## Taxonomy Decisions
-
-
-## Architecture Decisions
-
-
-## Finish Status
-
-not-ready
-
-## Notes
-
-
-```
-
-3. Report the next recommended command: `/sdd/proposal <change-name>`.
+   (High-level approach - freeform)
+   ```
+6. **Report**: Confirm creation and suggest next step (`/sdd/brainstorm` or `/sdd/proposal`)
