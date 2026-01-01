@@ -1,17 +1,18 @@
 ---
 name: counsel
-description: When and how to consult SDD specialist agents (Archimedes, Steward, Daedalus, Cartographer)
+description: When and how to consult SDD specialist agents (Archimedes, Loki, Steward, Daedalus, Cartographer)
 ---
 
 # Counsel - Consulting SDD Specialists
 
-This skill covers when and how to consult the four SDD specialist agents.
+This skill covers when and how to consult the five SDD specialist agents.
 
-## The Four Specialists
+## The Five Specialists
 
 | Agent | Role | Subagent Type |
 |-------|------|---------------|
-| **Archimedes** | Thoughtful critic - stress-tests ideas | `archimedes` |
+| **Archimedes** | Thoughtful critic - stress-tests ideas analytically | `archimedes` |
+| **Loki** | Scenario roleplayer - stress-tests by inhabiting user personas | `sdd/loki` |
 | **Steward** | Architecture fit checker | `sdd/steward` |
 | **Daedalus** | Paradigm inventor | `sdd/daedalus` |
 | **Cartographer** | Taxonomy mapper | `sdd/cartographer` |
@@ -30,10 +31,10 @@ All consultations are **fire-and-forget**:
 ### Archimedes (Critic)
 
 **Consult when:**
-- Proposal is drafted and needs stress-testing
+- Proposal is drafted and needs analytical stress-testing
 - Specs are complete and need gap analysis
 - You're unsure if an approach has hidden flaws
-- User wants their thinking challenged
+- User wants their thinking challenged logically
 
 **Example prompt:**
 ```
@@ -46,6 +47,33 @@ Return:
 2. Missing cases
 3. Risk flags
 4. Verdict: PASS/FAIL with required fixes
+```
+
+### Loki (Scenario Roleplayer)
+
+**Consult when:**
+- Proposal needs validation against realistic user workflows
+- You want to test if a design holds up under actual use
+- Checking for gaps that logical analysis might miss
+- User wants to see how the proposal feels "in practice"
+
+Loki is complementary to Archimedes: Archimedes critiques from the outside (logical analysis), Loki tests from the inside (lived experience as a user). Use both for thorough proposal validation.
+
+**Example prompt:**
+```
+Scenario-test this proposal by inhabiting a realistic user persona:
+
+<proposal content>
+
+Assume the role of a demanding but fair user at a fictional company. 
+Pick a concrete task that touches on this proposal and attempt to complete it.
+
+Return:
+1. The persona you inhabited (role, constraints, task)
+2. The journey (what you attempted, what worked, where you got stuck)
+3. Findings categorized as: Gaps, Friction, Ambiguities, Loopholes, Wins
+4. Verdict: Did you complete your task? Can you rest easy, or are you frustrated?
+5. Suggestions (if any) for addressing what you found
 ```
 
 ### Steward (Architecture)

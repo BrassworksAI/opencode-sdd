@@ -80,6 +80,15 @@ Gates prevent advancing until prerequisites are met:
 
 ## Updating State
 
+### Pending semantics (ledger rule)
+
+`## Pending` is a working ledger of **unresolved** questions, decisions, or blockers needed to continue work (especially after a break / new chat).
+
+Rules:
+- `## Pending` MUST contain **only** items that are still unresolved.
+- When a pending item is resolved, it MUST be **removed** from the list (do not mark it "done", do not strike it through).
+- Deferred/non-blocking ideas MUST NOT go in `## Pending`; put them in an explicit future/deferred document (e.g., `docs/future-capabilities.md`).
+
 When transitioning phases, update `state.md`:
 
 ```markdown

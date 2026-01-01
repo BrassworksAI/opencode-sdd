@@ -70,13 +70,23 @@ For **quick lane**, keep it lightweight - just enough to understand the change.
 
 ### Consulting Archimedes
 
-For full lane proposals, consult Archimedes:
+For full lane proposals, consult Archimedes for analytical critique:
 
 > Use Task tool with `archimedes` agent.
 > Provide: proposal content
 > Ask for: contradictions, gaps, risk assessment, verdict
 
 Address any FAIL findings before proceeding.
+
+### Consulting Loki
+
+After Archimedes, consult Loki for scenario validation:
+
+> Use Task tool with `sdd/loki` agent.
+> Provide: proposal content
+> Ask for: persona, journey through a realistic task, gaps/friction/wins, verdict
+
+Loki tests from the inside — inhabiting a user to see if the proposal holds up under realistic demands. Address blocking issues before proceeding; note friction points for consideration.
 
 ### Completion
 
