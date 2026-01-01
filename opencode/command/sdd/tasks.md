@@ -42,14 +42,15 @@ Brief summary of what these tasks accomplish.
 **Status:** pending | in_progress | complete
 
 **Requirements:**
-- <REQ-ID> (full lane only)
+- "<EARS requirement line>" (full lane - quote from delta specs)
 - Or: <requirement description from proposal>
 
 **Description:**
 What this task accomplishes.
 
-**Validation:**
-How to verify this task is complete.
+**Acceptance Criteria:**
+- <Testable criterion>
+- <Testable criterion>
 
 ---
 
@@ -76,13 +77,13 @@ Each task should be:
 ### For Full Lane
 
 - Every requirement in delta specs must map to at least one task
-- Tasks reference requirement IDs
+- Tasks reference requirements by quoting the EARS line
 - Use `spec-format` skill to understand requirement structure
 
 ### For Quick/Bug Lane
 
 - Tasks derive from proposal directly
-- No requirement IDs (no specs exist)
+- No specs exist, so reference proposal requirements directly
 - Focus on the specific change/fix described
 
 ### Completion

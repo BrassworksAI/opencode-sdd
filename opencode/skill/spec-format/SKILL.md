@@ -1,6 +1,6 @@
 ---
 name: spec-format
-description: How to write SDD specifications - delta format, SHALL language, requirement structure
+description: How to write SDD specifications - EARS syntax, delta format, requirement structure
 ---
 
 # Spec Format
@@ -29,18 +29,44 @@ Each capability spec follows this structure:
 
 Brief description of what this capability does and why it exists.
 
+## Dependencies
+
+Optional section listing dependencies on other specs or external systems.
+
 ## Requirements
 
-### <REQ-ID>: <Requirement Title>
+Requirements as a bulleted list. Optional grouping headings (### Group Name) for organization.
 
-The system SHALL <requirement in active voice>.
+### <Optional Group>
 
-**Rationale:** Why this requirement exists.
+- The system SHALL <requirement in active voice>.
+- WHEN <trigger> the system SHALL <action>.
 
-**Acceptance Criteria:**
-- <Testable criterion>
-- <Testable criterion>
+### <Another Group>
+
+- WHILE <state> the system SHALL <action>.
 ```
+
+## EARS Syntax
+
+Requirements use EARS (Easy Approach to Requirements Syntax) patterns:
+
+| Pattern | Template | Use When |
+|---------|----------|----------|
+| Ubiquitous | The system SHALL `<action>`. | Fundamental system properties, always true |
+| Event-driven | WHEN `<trigger>` the system SHALL `<action>`. | Response to a specific event |
+| State-driven | WHILE `<state>` the system SHALL `<action>`. | Behavior during a particular state |
+| Unwanted behavior | IF `<condition>` THEN the system SHALL `<action>`. | Handling errors, failures, edge cases |
+| Optional feature | WHERE `<feature>` is present the system SHALL `<action>`. | Behavior tied to optional features |
+| Complex | WHEN `<trigger>` IF `<condition>` THEN the system SHALL `<action>`. | Combining patterns |
+
+### Examples
+
+- The system SHALL validate all user input before processing.
+- WHEN the user clicks submit the system SHALL save the form data.
+- WHILE in maintenance mode the system SHALL reject new connections.
+- IF the database connection fails THEN the system SHALL retry with exponential backoff.
+- WHERE two-factor auth is enabled the system SHALL require a verification code.
 
 ## Delta Spec Format
 
@@ -52,50 +78,46 @@ changes/<name>/specs/
     <capability>.md
 ```
 
-Delta specs use Before/After blocks to show changes:
+Delta specs use markers to show changes:
 
-### Adding a New Requirement
+### Adding New Requirements
 
 ```markdown
-### <REQ-ID>: <New Requirement Title>
+### <Group>
 
 > **ADDED**
 
-The system SHALL <new requirement>.
-
-**Rationale:** <Why this is needed>
-
-**Acceptance Criteria:**
-- <Criterion>
+- The system SHALL <new requirement>.
+- WHEN <trigger> the system SHALL <action>.
 ```
 
 ### Modifying an Existing Requirement
 
 ```markdown
-### <REQ-ID>: <Requirement Title>
+### <Group>
 
 > **MODIFIED**
 
 **Before:**
-The system SHALL <old text>.
+- The system SHALL <old text>.
 
 **After:**
-The system SHALL <new text>.
-
-**Rationale:** <Why the change>
+- The system SHALL <new text>.
 ```
 
 ### Removing a Requirement
 
 ```markdown
-### <REQ-ID>: <Requirement Title>
+### <Group>
 
 > **REMOVED**
+
+- The system SHALL <requirement being removed>.
 
 **Reason:** <Why this requirement is being removed>
 ```
 
-## SHALL Language
+## RFC 2119 Keywords
 
 Requirements use RFC 2119 language:
 
@@ -105,25 +127,27 @@ Requirements use RFC 2119 language:
 - **SHOULD NOT** - Discouraged but not prohibited
 - **MAY** - Optional
 
-Prefer SHALL for most requirements. Use SHOULD/MAY sparingly and with clear rationale.
-
-## Requirement IDs
-
-Format: `<DOMAIN>-<NUMBER>`
-
-Examples:
-- `AUTH-001`: First auth requirement
-- `PAY-042`: 42nd payment requirement
-
-IDs are stable - never reuse a removed ID.
+Prefer SHALL for most requirements. Use SHOULD/MAY sparingly.
 
 ## Writing Good Requirements
 
-1. **One requirement per SHALL** - Don't combine multiple requirements
+1. **One requirement per bullet** - Don't combine multiple requirements
 2. **Active voice** - "The system SHALL validate" not "Validation shall be performed"
-3. **Testable** - Every requirement must have clear acceptance criteria
+3. **Testable** - Requirements should be verifiable
 4. **Implementation-agnostic** - Describe WHAT, not HOW
 5. **No ambiguity** - Avoid words like "appropriate", "reasonable", "user-friendly"
+6. **Use EARS patterns** - Pick the appropriate pattern for the requirement type
+
+## Referencing Requirements
+
+Tasks, plans, and reconciliation reference requirements by quoting the exact EARS line from the spec.
+
+Example in tasks.md:
+```markdown
+**Requirements:**
+- "WHEN the user clicks submit the system SHALL save the form data."
+- "IF validation fails THEN the system SHALL display error messages."
+```
 
 ## Flat vs Grouped Delta Specs
 

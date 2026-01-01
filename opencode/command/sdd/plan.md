@@ -63,7 +63,7 @@ What this plan accomplishes (from task description).
 
 ## Requirements
 
-- <REQ-ID>: <requirement text> (full lane)
+- "<EARS requirement line>" (full lane - quote from delta specs)
 - Or: <requirement from proposal> (quick/bug lane)
 
 ## Research Findings

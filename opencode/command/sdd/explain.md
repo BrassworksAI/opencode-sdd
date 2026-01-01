@@ -147,7 +147,7 @@ When user asks about a specific topic, explain in depth:
 |-------|-----------------|
 | `phases` | Each phase in detail, what happens, gates between them |
 | `lanes` | Full vs quick vs bug - when to use each, what's skipped |
-| `specs` | Delta spec format, SHALL requirements, Before/After blocks |
+| `specs` | Delta spec format, EARS syntax, Before/After blocks |
 | `tasks` | Task format, checkboxes, requirements sections, validation |
 | `plans` | Plan structure, context, steps, verification |
 | `reconcile` | What reconciliation checks, how drift is detected |

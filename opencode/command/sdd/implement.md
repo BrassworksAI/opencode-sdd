@@ -55,7 +55,7 @@ If implementation reveals plan problems:
 After implementation:
 
 1. Run validation steps from plan
-2. Verify acceptance criteria are met
+2. Verify acceptance criteria from task are met
 3. Ensure tests pass
 
 ### Task Completion

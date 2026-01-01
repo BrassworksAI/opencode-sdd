@@ -37,7 +37,6 @@ Before writing specs, **research** using the `research` skill:
 2. **Build context** for spec writing:
    - What specs already exist in related areas
    - What naming conventions are used
-   - What requirement ID ranges are in use
 
 ### Consulting Cartographer
 
@@ -53,8 +52,7 @@ Create specs in `changes/<name>/specs/` following the `spec-format` skill:
 
 1. **Identify capabilities** needed from the proposal
 2. **Determine paths** using Cartographer's guidance
-3. **Write requirements** using SHALL language
-4. **Include acceptance criteria** for each requirement
+3. **Write requirements** using EARS syntax
 
 ### Spec Review
 
@@ -62,7 +60,7 @@ For each spec file:
 - Ensure requirements are atomic (one SHALL per requirement)
 - Ensure requirements are testable
 - Ensure requirements are implementation-agnostic
-- Assign requirement IDs
+- Ensure requirements use appropriate EARS patterns
 
 ### Consulting Archimedes
 

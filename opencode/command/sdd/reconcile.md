@@ -29,8 +29,7 @@ For each requirement in delta specs:
 
 1. **Locate implementation**: Find the code that implements this requirement
 2. **Verify completeness**: Does the implementation fully satisfy the requirement?
-3. **Check acceptance criteria**: Are all criteria met?
-4. **Document finding**: Pass, fail, or partial
+3. **Document finding**: Pass, fail, or partial
 
 ### Reconciliation Report
 
@@ -45,7 +44,7 @@ X of Y requirements verified.
 
 ## Findings
 
-### <REQ-ID>: <Title>
+### "<EARS requirement line>"
 
 **Status:** pass | fail | partial
 
@@ -55,13 +54,13 @@ X of Y requirements verified.
 
 ---
 
-### <REQ-ID>: <Title>
+### "<EARS requirement line>"
 
 ...
 
 ## Unimplemented Requirements
 
-- <REQ-ID>: <reason>
+- "<EARS requirement line>": <reason>
 
 ## Implementation Without Specs
 
