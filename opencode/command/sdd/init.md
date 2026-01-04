@@ -38,7 +38,7 @@ Create a new SDD change set with the given name.
 
    ## Pending
 
-   - Select lane (full/quick/bug) during proposal
+    - Select lane (full/vibe/bug) during proposal
    ```
 5. **Initialize proposal.md** with empty template:
    ```markdown

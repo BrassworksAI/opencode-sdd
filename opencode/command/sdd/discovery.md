@@ -5,8 +5,8 @@ agent: sdd/forge
 ---
 
 <skill>sdd-state-management</skill>
-<skill>counsel</skill>
 <skill>research</skill>
+<skill>architecture-fit-check</skill>
 
 # Discovery
 
@@ -26,42 +26,49 @@ Review delta specs against existing repository architecture.
 
 ### Research Phase (Critical)
 
-Before consulting Steward, **research the codebase** using the `research` skill:
+Before evaluating architecture fit, use the `research` skill to understand the codebase:
 
-1. **Consult librarian** to understand:
-   - Current architecture patterns in the codebase
-   - Code areas that will be affected by the specs
+1. **Research to understand**:
+   - Current architecture patterns in codebase
+   - Code areas that will be affected by specs
    - Existing implementations of similar capabilities
    - Potential integration points and conflicts
 
-2. **Build context** for Steward:
-   - Document what you learned about the architecture
-   - Identify specific code areas the specs will touch
+2. **Build context** for architecture evaluation:
+   - Document what you learned about architecture
+   - Identify specific code areas specs will touch
    - Note any patterns that seem relevant
 
-### Consulting Steward
+### Architecture Fit Evaluation
 
-With research in hand, consult Steward for architecture fit:
+Using `architecture-fit-check` skill framework:
 
-> Use Task tool with `sdd/steward` agent.
-> Provide: delta specs summary, research findings about current architecture
-> Ask for: fit assessment, conflicts with existing patterns, integration concerns
+1. Identify architectural constraints that matter for this change
+2. Evaluate each delta spec against those constraints
+3. Check for workaround smell (are adjustments really just hacks?)
+4. Determine verdict: FITS, FITS_WITH_ADJUSTMENTS, or NO_FIT
+
+Document findings in format specified by skill.
 
 ### Analyzing Findings
 
-Review Steward's findings:
+Based on verdict:
 
-1. **Fits well**: Proceed to tasks
-2. **Minor concerns**: Document mitigations, proceed
-3. **Major conflicts**: Either revise specs or consult Daedalus
+1. **FITS**: Proceed to tasks phase
+2. **FITS_WITH_ADJUSTMENTS**: Document adjustments needed in proposal.md, then proceed
+3. **NO_FIT**: Load `architecture-workshop` skill and explore options
 
-### Consulting Daedalus (if needed)
+### Architecture Workshop (if NO_FIT)
 
-If existing patterns don't fit:
+If architecture evaluation returns NO_FIT:
 
-> Use Task tool with `sdd/daedalus` agent.
-> Provide: the conflict/problem, why existing patterns fail, research findings
-> Ask for: proposed new mechanism or structural approach
+1. Tell user: "Architecture fit evaluation returned NO_FIT. Loading architecture-workshop skill to explore options."
+2. Use `architecture-workshop` skill framework to:
+   - Generate light-touch and architecture options
+   - Evaluate blast radius and incremental paths
+   - Make a recommendation
+3. Document chosen approach in proposal.md
+4. If architecture work affects specs, return to specs phase first
 
 ### Updating Specs
 

@@ -1,6 +1,6 @@
 ---
 name: sdd/tasks
-description: Create implementation tasks from specs or proposal
+description: Create implementation tasks from specs (full lane)
 agent: sdd/forge
 ---
 
@@ -9,7 +9,9 @@ agent: sdd/forge
 
 # Tasks
 
-Create implementation tasks for the change set.
+Create implementation tasks for the change set. This command is for **full lane** only.
+
+> **Note**: Vibe and bug lanes skip this command. They use `/sdd/plan` which combines research, tasking, and planning into a single `plan.md` file.
 
 ## Arguments
 
@@ -19,10 +21,10 @@ Create implementation tasks for the change set.
 
 ### Setup
 
-1. Read `changes/<name>/state.md` - verify phase is `tasks`
-2. Determine source based on lane:
-   - **Full lane**: Read delta specs from `changes/<name>/specs/`
-   - **Quick/Bug lane**: Read `changes/<name>/proposal.md`
+1. Read `changes/<name>/state.md` - verify phase is `tasks` and lane is `full`
+2. Read delta specs from `changes/<name>/specs/`
+
+If lane is `vibe` or `bug`, redirect user to `/sdd/plan` instead.
 
 ### Task Structure
 
@@ -74,17 +76,11 @@ Each task should be:
 - Independently testable
 - Clear on what "done" means
 
-### For Full Lane
+### Requirement Mapping
 
 - Every requirement in delta specs must map to at least one task
 - Tasks reference requirements by quoting the EARS line
 - Use `spec-format` skill to understand requirement structure
-
-### For Quick/Bug Lane
-
-- Tasks derive from proposal directly
-- No specs exist, so reference proposal requirements directly
-- Focus on the specific change/fix described
 
 ### Completion
 

@@ -12,4 +12,4 @@ The following spec files are loaded for planning context:
 
 ---
 
-Use this context to inform your planning and implementation decisions for the `$1` change.
+Use this context to inform your planning and implementation decisions for the `$1` change. Respond "Got it." if you understand.

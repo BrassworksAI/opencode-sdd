@@ -5,7 +5,6 @@ agent: sdd/forge
 ---
 
 <skill>sdd-state-management</skill>
-<skill>counsel</skill>
 <skill>research</skill>
 
 # Brainstorm / Ideation
@@ -27,7 +26,7 @@ Explore the problem space collaboratively to develop a seed document.
 
 During ideation, research can help ground ideas in reality:
 
-1. **Consult librarian** when you need to understand:
+1. **Use `research` skill** when you need to understand:
    - Does something similar already exist in the codebase?
    - What constraints does the current architecture impose?
    - What patterns are already established?
@@ -79,14 +78,15 @@ What needs to be resolved.
 What could derail this.
 ```
 
-### Consulting Archimedes
+### Critique
 
-When the seed feels complete, consult Archimedes for critique:
+When the seed feels complete, suggest the user run `/sdd/tools/critique seed`:
 
-> Use Task tool with `archimedes` agent to stress-test the seed.
-> Ask for: contradictions, missing cases, risk flags, verdict.
+- Identifies contradictions and missing cases
+- Flags risks that aren't acknowledged
+- Validates the seed is ready to become a proposal
 
-If Archimedes returns FAIL, work with user to address required fixes.
+If critique identifies serious issues, work with user to address them.
 
 ### Completion
 

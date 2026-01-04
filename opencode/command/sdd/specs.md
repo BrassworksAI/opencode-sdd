@@ -1,12 +1,11 @@
 ---
 name: sdd/specs
-description: Write delta specifications for the change
+description: Write delta specifications for change
 agent: sdd/forge
 ---
 
 <skill>sdd-state-management</skill>
 <skill>spec-format</skill>
-<skill>counsel</skill>
 <skill>research</skill>
 
 # Specs
@@ -27,9 +26,9 @@ Write delta specifications for the change set.
 
 ### Research Phase
 
-Before writing specs, **research** using the `research` skill:
+Before writing specs, use the `research` skill:
 
-1. **Consult librarian** to understand:
+1. **Research to understand**:
    - Current spec structure and taxonomy
    - Related existing capabilities
    - How similar things are specified
@@ -38,20 +37,20 @@ Before writing specs, **research** using the `research` skill:
    - What specs already exist in related areas
    - What naming conventions are used
 
-### Consulting Cartographer
+### Taxonomy Mapping
 
-With research in hand, consult Cartographer:
+With research in hand, suggest the user run `/sdd/tools/taxonomy-map <name>`:
 
-> Use Task tool with `sdd/cartographer` agent.
-> Provide: proposal summary, current specs/ structure, research findings
-> Ask for: recommended paths for new capabilities, taxonomy placement
+- Determines where new capabilities should live in the spec hierarchy
+- Recommends brownfield (existing specs) vs greenfield (new specs)
+- Provides boundary decisions and group structure
 
 ### Writing Delta Specs
 
 Create specs in `changes/<name>/specs/` following the `spec-format` skill:
 
 1. **Identify capabilities** needed from the proposal
-2. **Determine paths** using Cartographer's guidance
+2. **Determine paths** using taxonomy mapping guidance
 3. **Write requirements** using EARS syntax
 
 ### Spec Review
@@ -62,13 +61,13 @@ For each spec file:
 - Ensure requirements are implementation-agnostic
 - Ensure requirements use appropriate EARS patterns
 
-### Consulting Archimedes
+### Critique
 
-When specs are complete, consult Archimedes:
+When specs are complete, suggest the user run `/sdd/tools/critique specs`:
 
-> Use Task tool with `archimedes` agent.
-> Provide: all delta specs
-> Ask for: completeness check, contradiction detection, missing edge cases
+- Checks for completeness and contradictions
+- Identifies missing edge cases
+- Validates requirements are well-formed
 
 ### Completion
 

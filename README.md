@@ -65,9 +65,9 @@ This walks you through the full workflow, what each phase produces, and how to g
 Or jump straight in:
 
 ```
-/sdd/init my-feature      # Start a new feature
-/sdd/bug fix-login        # Fast lane for bug fixes  
-/sdd/quick try-something  # Rapid prototyping
+/sdd/init my-feature            # Start a new feature
+/sdd/fast/bug fix-login        # Fast lane for bug fixes
+/sdd/fast/vibe try-something   # Rapid prototyping
 ```
 
 ## Development Install

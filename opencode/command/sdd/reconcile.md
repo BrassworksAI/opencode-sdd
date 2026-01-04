@@ -1,6 +1,6 @@
 ---
 name: sdd/reconcile
-description: Verify implementation matches specifications
+description: Ensure specs match implementation
 agent: sdd/forge
 ---
 
@@ -9,7 +9,9 @@ agent: sdd/forge
 
 # Reconcile
 
-Verify that implementation matches the delta specifications.
+Ensure that delta specs match the implementation diff.
+
+**This is a collaborative process** - present your findings to the user and get their input before making changes. Do not make unilateral decisions about what to add, remove, or modify in specs.
 
 ## Arguments
 
@@ -19,68 +21,70 @@ Verify that implementation matches the delta specifications.
 
 ### Setup
 
-1. Read `changes/<name>/state.md` - verify phase is `reconcile` and lane is `full`
-2. Read all delta specs from `changes/<name>/specs/`
-3. Read `changes/<name>/tasks.md` for context
+1. Read `changes/<name>/state.md` - verify phase is `reconcile`
+2. Read `changes/<name>/tasks.md` for context
 
-### Reconciliation Process
+### The Process
 
-For each requirement in delta specs:
+1. **Get the implementation diff**: What code was actually changed?
 
-1. **Locate implementation**: Find the code that implements this requirement
-2. **Verify completeness**: Does the implementation fully satisfy the requirement?
-3. **Document finding**: Pass, fail, or partial
+2. **If specs/ exists** (`changes/<name>/specs/`):
+    - Compare specs to the diff
+    - Present findings to the user:
+      - Does the diff match what the specs describe?
+      - Are there implementation changes not covered by specs?
+      - Are there specs describing things not in the diff?
+    - Get user input on what to do:
+      - Add missing specs for unspecced implementation?
+      - Remove specs that don't match diff?
+      - Modify existing specs to match implementation?
+
+3. **If specs/ does not exist**:
+    - Analyze whether the implementation adds/removes logic worth specifying
+    - Present your analysis: what changed and whether it's spec-worthy
+    - Ask user: "Should I create delta specs for these changes?"
+    - If yes: Create `changes/<name>/specs/` and write delta specs
+    - If no: Document that specs were not created (trivial changes)
+
+4. **Document findings** in `changes/<name>/reconciliation.md`
+
+### Writing Delta Specs from Diff
+
+When creating specs from the implementation:
+
+- Analyze what changed and what it means for the system
+- Use spec-format skill to write proper delta specs:
+  - Describe added capabilities (positive requirements)
+  - Describe removed capabilities (negative requirements)
+  - Describe behavioral changes
+- Each spec file should cover a logical area of change
 
 ### Reconciliation Report
-
-Create or update `changes/<name>/reconciliation.md`:
 
 ```markdown
 # Reconciliation: <name>
 
 ## Summary
 
-X of Y requirements verified.
+- Specs updated to match implementation: <yes/no>
+- New specs created: <yes/no>
+- Unspecced implementation: <none / list items>
 
 ## Findings
 
-### "<EARS requirement line>"
+- Any mismatches found and how they were resolved
+- Notes on significant changes
 
-**Status:** pass | fail | partial
+## Next Steps
 
-**Implementation:** `path/to/file.ts:123`
-
-**Notes:** Any relevant observations.
-
----
-
-### "<EARS requirement line>"
-
-...
-
-## Unimplemented Requirements
-
-- "<EARS requirement line>": <reason>
-
-## Implementation Without Specs
-
-- `path/to/file.ts`: <description of unspecced change>
+Proceed to finish
 ```
-
-### Handling Gaps
-
-**Unimplemented requirements:**
-- Return to tasks/plan/implement phases
-- Or: Remove requirement from specs (with rationale)
-
-**Implementation without specs:**
-- Add missing specs (return to specs phase)
-- Or: Remove the implementation
-- Or: Document as intentional (tech debt, etc.)
 
 ### Completion
 
-When reconciliation passes (all requirements verified):
+When user approves your reconciliation findings and any spec changes:
 
 1. Update state.md phase to `finish`
 2. Suggest running `/sdd/finish <name>`
+
+**Note**: If delta specs were created or updated, they will be synced to canonical specs during finish.

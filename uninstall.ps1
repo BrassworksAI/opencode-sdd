@@ -32,12 +32,12 @@ function Remove-SDDFiles {
         "$Target\agent\sdd",
         "$Target\agent\search",
         "$Target\agent\librarian.md",
-        "$Target\agent\archimedes.md",
         "$Target\command\sdd",
         "$Target\skill\spec-format",
         "$Target\skill\sdd-state-management",
-        "$Target\skill\counsel",
-        "$Target\skill\research"
+        "$Target\skill\research",
+        "$Target\skill\architecture-fit-check",
+        "$Target\skill\architecture-workshop"
     )
 
     foreach ($path in $paths) {

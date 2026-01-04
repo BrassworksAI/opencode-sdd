@@ -57,12 +57,12 @@ remove_sdd_files() {
     "$target/agent/sdd" \
     "$target/agent/search" \
     "$target/agent/librarian.md" \
-    "$target/agent/archimedes.md" \
     "$target/command/sdd" \
     "$target/skill/spec-format" \
     "$target/skill/sdd-state-management" \
-    "$target/skill/counsel" \
-    "$target/skill/research"
+    "$target/skill/research" \
+    "$target/skill/architecture-fit-check" \
+    "$target/skill/architecture-workshop"
   do
     if [ -e "$path" ] || [ -L "$path" ]; then
       rm -rf "$path"

@@ -1,16 +1,17 @@
 ---
 name: sdd/proposal
-description: Draft and refine the change proposal
+description: Draft and refine change proposal (full lane)
 agent: sdd/forge
 ---
 
 <skill>sdd-state-management</skill>
-<skill>counsel</skill>
 <skill>research</skill>
 
 # Proposal
 
-Draft and refine the proposal document for a change set.
+Draft and refine the proposal document for a change set. This command is primarily for **full lane** work.
+
+> **Note**: Vibe lane uses `/sdd/fast/vibe` which creates a lightweight `context.md` instead of a formal proposal. Bug lane uses `/sdd/fast/bug` which handles triage and context creation.
 
 ## Arguments
 
@@ -26,9 +27,9 @@ Draft and refine the proposal document for a change set.
 
 ### Research Phase (Recommended)
 
-For non-trivial proposals, **research** using the `research` skill:
+For non-trivial proposals, use the `research` skill:
 
-1. **Consult librarian** to understand:
+1. **Investigate the codebase** to understand:
    - Does similar functionality already exist?
    - What would this change interact with?
    - Are there existing patterns or constraints to respect?
@@ -45,8 +46,10 @@ If lane not yet selected, determine with user:
 | Lane | When to Use |
 |------|-------------|
 | `full` | New capabilities, architectural changes, complex features |
-| `quick` | Small enhancements to existing capabilities |
-| `bug` | Fixing incorrect behavior |
+| `vibe` | Prototypes, experiments, quick enhancements (use `/sdd/fast/vibe` instead) |
+| `bug` | Fixing incorrect behavior (use `/sdd/fast/bug` instead) |
+
+For vibe or bug work, redirect user to the appropriate fast command.
 
 Update state.md with selected lane.
 
@@ -61,38 +64,29 @@ Proposals are **freeform** - capture intent in whatever structure works. Common 
 - **Risks**: What could go wrong?
 - **Definition of Done**: How do we know we're finished?
 
-For **bug lane**, also include:
-- **Current Behavior**: What's happening now
-- **Expected Behavior**: What should happen
-- **Reproduction Steps**: How to see the bug
+### Critique (Recommended)
 
-For **quick lane**, keep it lightweight - just enough to understand the change.
+For full lane proposals, suggest the user run `/sdd/tools/critique` for analytical critique:
 
-### Consulting Archimedes
+- Identifies contradictions, gaps, and risks
+- Challenges unstated assumptions
+- Provides honest assessment of proposal quality
 
-For full lane proposals, consult Archimedes for analytical critique:
+Address any serious issues raised before proceeding.
 
-> Use Task tool with `archimedes` agent.
-> Provide: proposal content
-> Ask for: contradictions, gaps, risk assessment, verdict
+### Scenario Testing (Recommended)
 
-Address any FAIL findings before proceeding.
+After critique, suggest the user run `/sdd/tools/scenario-test` for user-perspective validation:
 
-### Consulting Loki
+- Tests proposal by inhabiting a realistic user persona
+- Identifies gaps, friction points, and ambiguities
+- Reports whether a user could actually accomplish their goals
 
-After Archimedes, consult Loki for scenario validation:
-
-> Use Task tool with `sdd/loki` agent.
-> Provide: proposal content
-> Ask for: persona, journey through a realistic task, gaps/friction/wins, verdict
-
-Loki tests from the inside — inhabiting a user to see if the proposal holds up under realistic demands. Address blocking issues before proceeding; note friction points for consideration.
+Address blocking issues before proceeding; note friction points for consideration.
 
 ### Completion
 
 When proposal is approved:
 
-1. Update state.md phase:
-   - Full lane: `specs`
-   - Quick/Bug lane: `tasks`
-2. Suggest next command based on lane
+1. Update state.md phase to `specs`
+2. Suggest `/sdd/specs <name>` to write delta specifications

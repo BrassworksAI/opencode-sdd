@@ -20,8 +20,9 @@ Execute the current implementation plan.
 ### Setup
 
 1. Read `changes/<name>/state.md` - verify phase is `implement`
-2. Read `changes/<name>/tasks.md` - find current in_progress task
-3. Read corresponding plan from `changes/<name>/plans/`
+2. Determine lane and load plan:
+   - **Full lane**: Read `changes/<name>/tasks.md` to find current in_progress task, then read corresponding plan from `changes/<name>/plans/`
+   - **Vibe/Bug lane**: Read `changes/<name>/plan.md` (single combined plan)
 
 ### Implementation Process
 
@@ -36,8 +37,8 @@ Execute the plan step by step:
 
 If you encounter unexpected situations, use the `research` skill:
 
-- **Unexpected code structure**: Consult librarian to understand it
-- **Need to understand a dependency**: Ask librarian how it works
+- **Unexpected code structure**: Investigate to understand it
+- **Need to understand a dependency**: Research how it works
 - **Unclear integration**: Research before guessing
 
 Don't guess when you can research. But also don't over-research - the plan should have captured the major research needs.
@@ -48,22 +49,29 @@ If implementation reveals plan problems:
 
 - **Minor adjustments**: Proceed, document deviation in plan
 - **Major issues**: Stop, discuss with user, potentially re-plan
-- **Spec issues**: Flag for reconciliation (don't modify specs during implement)
+- **Spec issues (full lane)**: Flag for reconciliation (don't modify specs during implement)
 
 ### Validation
 
 After implementation:
 
 1. Run validation steps from plan
-2. Verify acceptance criteria from task are met
+2. Verify acceptance criteria are met
 3. Ensure tests pass
 
-### Task Completion
+### Completion
 
-When task is complete:
-
-1. Mark task `complete` in tasks.md
+**Full Lane:**
+1. Mark current task `complete` in tasks.md
 2. Check if more tasks remain:
    - **More tasks**: Update state to `plan`, suggest `/sdd/plan <name>`
-   - **All complete (full lane)**: Update state to `reconcile`, suggest `/sdd/reconcile <name>`
-   - **All complete (quick/bug lane)**: Update state to `finish`, suggest `/sdd/finish <name>`
+   - **All complete**: Update state to `reconcile`, suggest `/sdd/reconcile <name>`
+
+**Vibe/Bug Lane:**
+1. Implementation is complete with the single plan
+2. User decides next step:
+   - **Throwing away**: Done - no further action needed
+   - **Keeping the work**: Update state to `reconcile`, suggest `/sdd/reconcile <name>`
+
+> **Note**: For vibe/bug lanes, reconcile is optional. If the work is exploratory or a quick fix that doesn't warrant spec updates, stopping here is perfectly valid.
+

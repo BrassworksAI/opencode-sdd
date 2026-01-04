@@ -20,149 +20,140 @@ Every change set has a state file at `changes/<name>/state.md`:
 
 ## Lane
 
-<full|quick|bug>
+<full|vibe|bug>
 
 ## Pending
 
 - <any blocked items or decisions needed>
 ```
 
-## Phases
+## Lanes Overview
 
-### Full Lane Phases
+| Lane | Purpose | Flow |
+|------|---------|------|
+| **Full** | Enterprise features, architectural changes | Proposal → Specs → Discovery → Tasks → Plan → Implement → Reconcile → Finish |
+| **Vibe** | Rapid prototypes, exploration | Context → Plan → Implement → [Reconcile → Finish] |
+| **Bug** | Fix defects | Triage + Research → Plan → Implement → [Reconcile → Finish] |
+
+## Full Lane
+
+The complete SDD experience. Specs are written before implementation.
+
+### Phases
 
 ```
 ideation -> proposal -> specs -> discovery -> tasks -> plan -> implement -> reconcile -> finish
 ```
 
-| Phase | Purpose | Artifacts Created |
-|-------|---------|-------------------|
+| Phase | Purpose | Artifacts |
+|-------|---------|-----------|
 | `ideation` | Explore problem space | `seed.md` |
 | `proposal` | Define what we're building | `proposal.md` |
 | `specs` | Write detailed specifications | `specs/*.md` (delta specs) |
-| `discovery` | Review specs against existing architecture | Discovery notes in proposal |
-| `tasks` | Break specs into implementation tasks | `tasks.md` |
-| `plan` | Create implementation plan for current task | `plans/NN.md` |
+| `discovery` | Review specs against architecture | Discovery notes |
+| `tasks` | Break specs into tasks | `tasks.md` |
+| `plan` | Plan current task | `plans/NN.md` |
 | `implement` | Execute the plan | Code changes |
 | `reconcile` | Verify implementation matches specs | Reconciliation report |
-| `finish` | Close change set, sync delta specs | Specs synced to canonical |
+| `finish` | Close and sync specs | Specs synced to canonical |
 
-### Quick Lane Phases
+### Phase Gates
 
-```
-proposal -> tasks -> plan -> implement -> finish
-```
-
-For small enhancements that don't need full spec treatment. Skips: ideation, specs, discovery, reconcile.
-
-### Bug Lane Phases
-
-```
-proposal -> tasks -> plan -> implement -> finish
-```
-
-For bug fixes. Same as quick lane. Proposal documents the bug and fix approach.
-
-## Phase Gates
-
-Gates prevent advancing until prerequisites are met:
-
-| From | To | Gate Condition |
-|------|----|----------------|
-| ideation | proposal | Seed reviewed and approved |
-| proposal | specs | Proposal reviewed and approved |
-| specs | discovery | All delta specs written and user-approved |
+| From | To | Gate |
+|------|----|------|
+| ideation | proposal | Seed reviewed |
+| proposal | specs | Proposal approved |
+| specs | discovery | Delta specs written |
 | discovery | tasks | Architecture review complete |
-| tasks | plan | Tasks defined with requirements |
-| plan | implement | Plan approved for current task |
+| tasks | plan | Tasks defined |
+| plan | implement | Plan approved |
 | implement | reconcile | All tasks complete |
 | reconcile | finish | Implementation matches specs |
 
-## Phase Work Completion
+## Vibe Lane
 
-When phase deliverables are ready but user has not yet approved them:
+Freedom to explore. Skip specs, get to building fast.
+
+### Flow
+
+```
+/sdd/fast/vibe <context>  →  /sdd/plan  →  /sdd/implement  →  [/sdd/reconcile  →  /sdd/finish]
+```
+
+### Artifacts
+
+| File | Purpose |
+|------|---------|
+| `state.md` | Phase and lane tracking |
+| `context.md` | Loose capture of what we're exploring |
+| `plan.md` | Combined research + planning (single file) |
+
+### Optional Completion
+
+Reconcile and finish are optional:
+- **Throwing it away**: Stop after implement
+- **Keeping it**: Reconcile captures specs from implementation, finish syncs to canonical
+
+## Bug Lane
+
+Hunt and fix. Triages the issue first.
+
+### Flow
+
+```
+/sdd/fast/bug <context>  →  /sdd/plan  →  /sdd/implement  →  [/sdd/reconcile  →  /sdd/finish]
+```
+
+### Triage
+
+The bug command determines if this is:
+- **Actual bug**: Implementation doesn't match intent → proceed with bug lane
+- **Behavioral change**: User wants different behavior → redirect to full lane with specs
+
+### Artifacts
+
+| File | Purpose |
+|------|---------|
+| `state.md` | Phase and lane tracking |
+| `context.md` | Bug details, root cause, fix approach |
+| `plan.md` | Combined research + planning |
+| `thoughts/` | Optional scratch space for complex investigations |
+
+### Optional Completion
+
+Reconcile and finish are optional:
+- **No spec impact**: Stop after implement (most bug fixes)
+- **Specs affected**: Reconcile captures changes, finish syncs
+
+## Thoughts Directory
+
+For complex investigations, use `thoughts/` as a free-form workspace:
+
+```
+changes/<name>/
+  thoughts/
+    investigation.md
+    options.md
+```
+
+Purpose: Document thinking so users can continue in a new chat with full context.
+
+## Pending Semantics
+
+`## Pending` is a ledger of **unresolved** items:
+
+- Contains only unresolved items
+- Remove items when resolved (don't strike through)
+- Deferred ideas go elsewhere (e.g., `docs/future-capabilities.md`)
+
+## User Approval Gates
+
+For full lane, don't auto-advance phases. Indicate when user review is needed:
 
 ```markdown
 ## Pending
 
-- [Phase artifacts] complete (e.g., "All 12 delta specs written")
-- Specialist review complete (if applicable)
-- **User review required**: [what to review] before advancing to [next phase]
+- **User review required**: Review specs before advancing to discovery
 ```
 
-**Rules:**
-- Phase work is considered "done" when deliverables are complete and reviewed (e.g., Archimedes for specs)
-- DO NOT automatically advance to the next phase when work is complete
-- ALWAYS indicate "User review required" in Pending when phase deliverables are ready
-- User must explicitly approve before state advances to next phase
-- Only after user approval should you update `## Phase` and clear the review note
-
-Example transition from specs -> discovery:
-
-**After specs work completes:**
-```markdown
-## Phase
-specs
-
-## Pending
-- All 43 delta specs written
-- Archimedes review complete
-- **User review required**: Review specs under changes/capstan/specs/ before advancing to discovery
-```
-
-**After user approves:**
-```markdown
-## Phase
-discovery
-
-## Pending
-- None
-```
-
-## Updating State
-
-### Pending semantics (ledger rule)
-
-`## Pending` is a working ledger of **unresolved** questions, decisions, or blockers needed to continue work (especially after a break / new chat).
-
-Rules:
-- `## Pending` MUST contain **only** items that are still unresolved.
-- When a pending item is resolved, it MUST be **removed** from the list (do not mark it "done", do not strike it through).
-- Deferred/non-blocking ideas MUST NOT go in `## Pending`; put them in an explicit future/deferred document (e.g., `docs/future-capabilities.md`).
-
-When transitioning phases, update `state.md`:
-
-```markdown
-## Phase
-
-tasks  # was: specs
-```
-
-Add pending items when blocked:
-
-```markdown
-## Pending
-
-- Waiting for Steward review of auth changes
-- Need clarification on error handling approach
-```
-
-## Lane Selection
-
-Choose lane at proposal time based on scope:
-
-| Scope | Lane | When to Use |
-|-------|------|-------------|
-| Large feature | `full` | New capabilities, architectural changes |
-| Small enhancement | `quick` | Adding to existing capability, minor features |
-| Bug fix | `bug` | Fixing incorrect behavior |
-
-Lane is recorded in state and cannot change mid-flight.
-
-## State Queries
-
-To check current state: read `changes/<name>/state.md`
-
-To list all active change sets: `ls changes/*/state.md`
-
-To find change sets in a specific phase: grep for `## Phase` followed by phase name
+Advance only after explicit user approval.

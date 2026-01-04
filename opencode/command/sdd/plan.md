@@ -1,81 +1,70 @@
 ---
 name: sdd/plan
-description: Create implementation plan for current task
+description: Research, plan, and prepare for implementation
 agent: sdd/forge
 ---
 
 <skill>sdd-state-management</skill>
-<skill>counsel</skill>
 <skill>research</skill>
 
 # Plan
 
-Create an implementation plan for the current task.
+Research the codebase and create an implementation plan.
 
 ## Arguments
 
-- `$ARGUMENTS` - Change set name (optionally: `<name> <task-number>`)
+- `$ARGUMENTS` - Change set name (optionally: `<name> <task-number>` for full lane)
 
 ## Instructions
 
 ### Setup
 
-1. Read `changes/<name>/state.md` - verify phase is `plan` or `implement`
-2. Read `changes/<name>/tasks.md`
-3. Identify current task (first pending, or specified task number)
-4. List existing plans in `changes/<name>/plans/`
+1. Read `changes/<name>/state.md` - verify phase is `plan`
+2. Determine lane (full, vibe, or bug)
+3. Read context:
+   - **Full lane**: Read `tasks.md`, identify current task
+   - **Vibe/Bug lane**: Read `context.md`
 
-### Research Phase (Critical)
+---
 
-Before writing any plan, **research the codebase** using the `research` skill:
+## Full Lane Planning
 
-1. **Consult librarian** to understand:
-   - Where the changes need to happen (exact file paths)
-   - What patterns exist for similar functionality
-   - What integration points are involved
-   - What tests exist that might need updates
+For full lane, plan one task at a time.
 
-2. **Iterate with librarian** until you have:
-   - Specific file paths for all changes
-   - Understanding of existing patterns to follow
-   - Clear picture of integration points
+### Identify Current Task
 
-A plan without proper research is just guessing. Do the research first.
+1. Read `changes/<name>/tasks.md`
+2. Find first pending task (or specified task number)
+3. Read any existing plans in `changes/<name>/plans/`
 
-### Consulting Archimedes (Optional)
+### Research
 
-For complex tasks, consult Archimedes to stress-test the approach:
+Use the `research` skill to understand:
+- Where changes need to happen (exact file paths)
+- Existing patterns to follow
+- Integration points
+- Tests that need updates
 
-> Use Task tool with `archimedes` agent.
-> Provide: task requirements, proposed approach, research findings
-> Ask for: gaps, risks, alternative approaches
+### Create Plan
 
-### Plan Structure
-
-Create `changes/<name>/plans/<NN>.md` where NN is zero-padded task number:
+Create `changes/<name>/plans/<NN>.md`:
 
 ```markdown
 # Plan: Task <N> - <Task Title>
 
 ## Objective
 
-What this plan accomplishes (from task description).
+<From task description>
 
 ## Requirements
 
-- "<EARS requirement line>" (full lane - quote from delta specs)
-- Or: <requirement from proposal> (quick/bug lane)
+- "<EARS requirement line from delta specs>"
 
 ## Research Findings
 
-Key findings from librarian research:
-- <relevant patterns found>
-- <integration points identified>
-- <existing code to modify>
-
-## Approach
-
-High-level approach to implementation.
+- <Patterns found>
+- <Integration points>
+- <Files to modify>
 
 ## Steps
 
@@ -84,7 +73,6 @@ High-level approach to implementation.
 **Files:** `path/to/file.ts`
 
 **Changes:**
-- What changes to make
 - Specific modifications
 
 ### Step 2: <Title>
@@ -93,29 +81,91 @@ High-level approach to implementation.
 
 ## Validation
 
-How to verify the implementation:
-- [ ] Test case 1
-- [ ] Test case 2
-- [ ] Acceptance criteria from requirements
-
-## Risks
-
-Any implementation risks or concerns.
+- [ ] Acceptance criteria
+- [ ] Tests pass
 ```
-
-### Plan Quality
-
-A good plan:
-- Is based on actual codebase research (not assumptions)
-- Has clear, specific file paths (verified to exist)
-- Describes actual code changes (not vague directions)
-- Follows patterns found in the codebase
-- Includes validation steps
 
 ### Completion
 
-When plan is ready:
-
 1. Mark task as `in_progress` in tasks.md
 2. Update state.md phase to `implement`
-3. Suggest running `/sdd/implement <name>`
+3. Suggest `/sdd/implement <name>`
+
+---
+
+## Vibe/Bug Lane Planning
+
+For vibe/bug lanes, combine discovery + tasking + planning into one pass. Get to building fast.
+
+### Research
+
+Use the `research` skill to understand:
+- What exists in the codebase
+- Where changes need to happen
+- Patterns to follow
+- Potential risks or complications
+
+### Create Combined Plan
+
+Create `changes/<name>/plan.md` (single file, not per-task):
+
+```markdown
+# Plan: <name>
+
+## Goal
+
+<What we're trying to accomplish - from context.md>
+
+## Research Findings
+
+<What we learned about the codebase>
+- Relevant files and patterns
+- Integration points
+- Potential risks
+
+## Approach
+
+<High-level strategy>
+
+## Changes
+
+### 1. <First change>
+
+**Files:** `path/to/file.ts`
+
+**What:**
+- Specific modifications
+
+### 2. <Second change>
+
+...
+
+## Validation
+
+How to verify it works:
+- [ ] Test case 1
+- [ ] Test case 2
+```
+
+### Keep It Lean
+
+For vibe/bug lanes:
+- Don't over-plan - you're exploring
+- Enough detail to start, not a complete spec
+- If it gets complicated, that's a sign to consider full lane
+
+### Completion
+
+1. Update state.md phase to `implement`
+2. Suggest `/sdd/implement <name>`
+
+---
+
+## Plan Quality
+
+A good plan:
+- Is grounded in research (not assumptions)
+- Has specific file paths (verified to exist)
+- Follows patterns found in the codebase
+- Includes validation steps
+- Is appropriately detailed for the lane
