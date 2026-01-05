@@ -27,6 +27,8 @@ If lane is `vibe` or `bug`, redirect user to `/sdd/plan` instead.
 
 ## Context
 
+> **Note**: The proposal, specs, and thoughts are injected below. Do NOT manually read these files—they are already in your context.
+
 ### Proposal
 !`cat changes/$1/proposal.md 2>/dev/null || echo "No proposal found"`
 
