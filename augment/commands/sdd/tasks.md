@@ -87,13 +87,16 @@ Each task should be:
 
 ### Completion
 
-Work through task breakdown collaboratively with the user. When they explicitly approve:
+Work through the task breakdown collaboratively with the user. 
 
-1. Log approval in state.md under `## Pending`:
-   ```
-   None - Tasks approved: [number] tasks defined
-   ```
-2. Update state.md phase to `plan`
-3. Suggest running `/sdd:plan <name>` to plan first task
+1. **Be Proactive**: If the grouping or ordering is ambiguous, propose a logical structure based on architectural best practices ("Foundations First", "Implementation Slices"). Explain the rationale behind your choices.
+2. **Ask for Clarification**: If a requirement is genuinely ambiguous or could be grouped in multiple valid ways with different trade-offs, ask the user for their preference.
+3. **Approval**: When the user explicitly approves:
+   - Log approval in state.md under `## Pending`:
+     ```
+     None - Tasks approved: [number] tasks defined
+     ```
+   - Update state.md phase to `plan`
+   - Suggest running `/sdd:plan <name>` to plan first task
 
 Don't advance until the user clearly signals approval. Questions, feedback, or acknowledgments don't count as approval.
