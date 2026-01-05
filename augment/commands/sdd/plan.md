@@ -50,7 +50,7 @@ Delegate to `@librarian` to understand:
 Create `changes/<name>/plans/<NN>.md`:
 
 ```markdown
-# Plan: Task <N> - <Task Title>
+# Plan: <Task Title>
 
 ## Objective
 
@@ -59,7 +59,6 @@ Create `changes/<name>/plans/<NN>.md`:
 ## Requirements
 
 - **From <spec>**: "<full EARS requirement line from delta specs>"
-- **From proposal**: <requirement from proposal>
 
 ## Research Findings
 

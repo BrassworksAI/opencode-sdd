@@ -24,6 +24,15 @@ Create implementation tasks for the change set. This command is for **full lane*
 
 If lane is `vibe` or `bug`, redirect user to `/sdd/plan` instead.
 
+### Collaborative Tasking
+
+This command is a **dialogue**, not a one-way generation.
+
+1. **Think Out Loud**: Before writing the file, present your initial thoughts on the task breakdown. Explain *why* you're grouping certain requirements and why you've chosen a specific order.
+2. **Present Options**: If there are multiple valid ways to slice the work (e.g., horizontal vs vertical, foundation-first vs feature-first), present them to the user with trade-offs.
+3. **Invite Feedback**: Explicitly ask the user if they have specific preferences for task granularity or if there's a specific logical flow they want to follow to maintain system stability.
+4. **Iterate**: Only write `tasks.md` once a consensus on the strategy has been reached.
+
 ### Task Structure
 
 Create `changes/<name>/tasks.md` using checkbox-style progress tracking:
@@ -40,7 +49,7 @@ Brief summary of what these tasks accomplish.
 
 ## Tasks
 
-### 1. [ ] <Title>
+### [ ] <Title>
 
 **Description:**
 What this task accomplishes. Focus on why it exists and what it changes.
@@ -56,7 +65,7 @@ What this task accomplishes. Focus on why it exists and what it changes.
 
 ---
 
-### 2. [ ] <Title>
+### [ ] <Title>
 
 ...
 ```
