@@ -1,0 +1,143 @@
+# SDD State Management
+
+This skill covers how SDD tracks change set state and enforces phase gates.
+
+## State File
+
+Every change set has a state file at `changes/<name>/state.md`:
+
+```markdown
+# SDD State: <name>
+
+## Phase
+
+<current-phase>
+
+## Lane
+
+<full|vibe|bug>
+
+## Pending
+
+- <any blocked items or decisions needed>
+```
+
+## Lanes Overview
+
+| Lane | Purpose | Flow |
+|------|---------|------|
+| **Full** | Enterprise features, architectural changes | Proposal → Specs → Discovery → Tasks → Plan → Implement → Reconcile → Finish |
+| **Vibe** | Rapid prototypes, exploration | Context → Plan → Implement → [Reconcile → Finish] |
+| **Bug** | Fix defects | Triage + Research → Plan → Implement → [Reconcile → Finish] |
+
+## Full Lane
+
+The complete SDD experience. Specs are written before implementation.
+
+### Phases
+
+```
+ideation -> proposal -> specs -> discovery -> tasks -> plan -> implement -> reconcile -> finish
+```
+
+| Phase | Purpose | Artifacts |
+|-------|---------|-----------|
+| `ideation` | Explore problem space | `seed.md` |
+| `proposal` | Define what we're building | `proposal.md` |
+| `specs` | Write detailed specifications | `specs/*.md` (delta specs) |
+| `discovery` | Review specs against architecture | Discovery notes |
+| `tasks` | Break specs into tasks | `tasks.md` |
+| `plan` | Plan current task | `plans/NN.md` |
+| `implement` | Execute the plan | Code changes |
+| `reconcile` | Verify implementation matches specs | Reconciliation report |
+| `finish` | Close and sync specs | Specs synced to canonical |
+
+### Phase Gates
+
+| From | To | Gate |
+|------|----|------|
+| ideation | proposal | Seed reviewed |
+| proposal | specs | Proposal approved |
+| specs | discovery | Delta specs written |
+| discovery | tasks | Architecture review complete |
+| tasks | plan | Tasks defined |
+| plan | implement | Plan approved |
+| implement | reconcile | All tasks complete |
+| reconcile | finish | Implementation matches specs |
+
+## Vibe Lane
+
+Freedom to explore. Skip specs, get to building fast.
+
+### Flow
+
+```
+/sdd/fast/vibe <context>  →  /sdd/plan  →  /sdd/implement  →  [/sdd/reconcile  →  /sdd/finish]
+```
+
+### Artifacts
+
+| File | Purpose |
+|------|---------|
+| `state.md` | Phase and lane tracking |
+| `context.md` | Loose capture of what we're exploring |
+| `plan.md` | Combined research + planning (single file) |
+
+### Optional Completion
+
+Reconcile and finish are optional:
+- **Throwing it away**: Stop after implement
+- **Keeping it**: Reconcile captures specs from implementation, finish syncs to canonical
+
+## Bug Lane
+
+Hunt and fix. Triages the issue first.
+
+### Flow
+
+```
+/sdd/fast/bug <context>  →  /sdd/plan  →  /sdd/implement  →  [/sdd/reconcile  →  /sdd/finish]
+```
+
+### Triage
+
+The bug command determines if this is:
+- **Actual bug**: Implementation doesn't match intent → proceed with bug lane
+- **Behavioral change**: User wants different behavior → redirect to full lane with specs
+
+### Optional Completion
+
+Reconcile and finish are optional:
+- **No spec impact**: Stop after implement (most bug fixes)
+- **Specs affected**: Reconcile captures changes, finish syncs
+
+## Thoughts Directory
+
+For complex investigations, use `thoughts/` as a free-form workspace:
+
+```
+changes/<name>/
+  thoughts/
+    investigation.md
+    options.md
+```
+
+## Pending Semantics
+
+`## Pending` is a ledger of **unresolved** items:
+
+- Contains only unresolved items
+- Remove items when resolved (don't strike through)
+- Deferred ideas go elsewhere (e.g., `docs/future-capabilities.md`)
+
+## User Approval Gates
+
+For full lane, don't auto-advance phases. Indicate when user review is needed:
+
+```markdown
+## Pending
+
+- **User review required**: Review specs before advancing to discovery
+```
+
+Advance only after explicit user approval.

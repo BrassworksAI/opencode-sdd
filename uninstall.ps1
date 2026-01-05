@@ -1,5 +1,5 @@
-# OpenCode SDD Uninstaller (Windows PowerShell)
-# Removes the Spec-Driven Development process for OpenCode
+# Agent Extensions Uninstaller (Windows PowerShell)
+# Removes the Spec-Driven Development process for OpenCode and/or Augment
 
 $ErrorActionPreference = "Stop"
 
@@ -23,115 +23,277 @@ function Find-GitRoot {
     return $null
 }
 
-# Remove SDD files from a target directory
-function Remove-SDDFiles {
+# Remove a file if it exists
+function Remove-FileIfExists {
+    param($Path)
+    if (Test-Path $Path) {
+        Remove-Item -Path $Path -Force
+        return $true
+    }
+    return $false
+}
+
+# Remove a directory only if empty
+function Remove-EmptyDirectory {
+    param($Path)
+    if ((Test-Path $Path) -and ((Get-ChildItem $Path -Force | Measure-Object).Count -eq 0)) {
+        Remove-Item -Path $Path -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Remove OpenCode SDD files from a target directory
+function Remove-OpenCodeFiles {
     param($Target)
     $removed = 0
 
-    $paths = @(
-        "$Target\agent\sdd",
-        "$Target\agent\search",
-        "$Target\agent\librarian.md",
-        "$Target\agent\chat.md",
-        "$Target\command\sdd",
-        "$Target\command\create",
-        "$Target\skill\spec-format",
-        "$Target\skill\sdd-state-management",
-        "$Target\skill\research",
-        "$Target\skill\architecture-fit-check",
-        "$Target\skill\architecture-workshop",
-        "$Target\skill\bun-shell-commands",
-        "$Target\skill\keep-current",
-        "$Target\skill\skill-creator"
+    # OpenCode file list - exact files installed
+    $files = @(
+        "agent\sdd\forge.md",
+        "agent\librarian.md",
+        "agent\chat.md",
+        "command\sdd\init.md",
+        "command\sdd\plan.md",
+        "command\sdd\implement.md",
+        "command\sdd\proposal.md",
+        "command\sdd\specs.md",
+        "command\sdd\discovery.md",
+        "command\sdd\tasks.md",
+        "command\sdd\reconcile.md",
+        "command\sdd\finish.md",
+        "command\sdd\continue.md",
+        "command\sdd\status.md",
+        "command\sdd\brainstorm.md",
+        "command\sdd\explain.md",
+        "command\sdd\fast\vibe.md",
+        "command\sdd\fast\bug.md",
+        "command\sdd\tools\critique.md",
+        "command\sdd\tools\scenario-test.md",
+        "command\sdd\tools\taxonomy-map.md",
+        "command\sdd\tools\prime-specs.md",
+        "command\create\agent.md",
+        "command\create\command.md",
+        "skill\spec-format\SKILL.md",
+        "skill\sdd-state-management\SKILL.md",
+        "skill\research\SKILL.md",
+        "skill\architecture-fit-check\SKILL.md",
+        "skill\architecture-workshop\SKILL.md",
+        "skill\bun-shell-commands\SKILL.md",
+        "skill\keep-current\SKILL.md",
+        "skill\skill-creator\SKILL.md",
+        "skill\skill-creator\deno.json",
+        "skill\skill-creator\deno.lock",
+        "skill\skill-creator\scripts\deps.ts",
+        "skill\skill-creator\scripts\init_skill.ts",
+        "skill\skill-creator\scripts\quick_validate.ts",
+        "skill\skill-creator\references\deno-runtime.md",
+        "skill\skill-creator\references\output-patterns.md",
+        "skill\skill-creator\references\script_rules.md",
+        "skill\skill-creator\references\workflows.md"
     )
 
-    foreach ($path in $paths) {
-        if (Test-Path $path) {
-            Remove-Item -Path $path -Recurse -Force
+    foreach ($file in $files) {
+        $path = Join-Path $Target $file
+        if (Remove-FileIfExists -Path $path) {
             $removed++
         }
+    }
+
+    # Clean up empty directories (leaf to root)
+    $dirs = @(
+        "skill\skill-creator\references",
+        "skill\skill-creator\scripts",
+        "skill\skill-creator",
+        "skill\spec-format",
+        "skill\sdd-state-management",
+        "skill\research",
+        "skill\architecture-fit-check",
+        "skill\architecture-workshop",
+        "skill\bun-shell-commands",
+        "skill\keep-current",
+        "skill",
+        "command\sdd\tools",
+        "command\sdd\fast",
+        "command\sdd",
+        "command\create",
+        "command",
+        "agent\sdd",
+        "agent"
+    )
+
+    foreach ($dir in $dirs) {
+        Remove-EmptyDirectory -Path (Join-Path $Target $dir)
     }
 
     return $removed
 }
 
+# Remove Augment SDD files from a target directory
+function Remove-AugmentFiles {
+    param($Target)
+    $removed = 0
+
+    # Augment file list - exact files installed
+    $files = @(
+        "agents\librarian.md",
+        "commands\sdd\init.md",
+        "commands\sdd\plan.md",
+        "commands\sdd\implement.md",
+        "commands\sdd\proposal.md",
+        "commands\sdd\specs.md",
+        "commands\sdd\discovery.md",
+        "commands\sdd\tasks.md",
+        "commands\sdd\reconcile.md",
+        "commands\sdd\finish.md",
+        "commands\sdd\continue.md",
+        "commands\sdd\status.md",
+        "commands\sdd\brainstorm.md",
+        "commands\sdd\explain.md",
+        "commands\sdd\fast\vibe.md",
+        "commands\sdd\fast\bug.md",
+        "commands\sdd\tools\critique.md",
+        "commands\sdd\tools\scenario-test.md",
+        "commands\sdd\tools\taxonomy-map.md",
+        "commands\sdd\tools\prime-specs.md",
+        "commands\create\agent.md",
+        "commands\create\command.md",
+        "skills\sdd-state-management.md",
+        "skills\spec-format.md",
+        "skills\research.md",
+        "skills\architecture-fit-check.md",
+        "skills\architecture-workshop.md",
+        "skills\keep-current.md"
+    )
+
+    foreach ($file in $files) {
+        $path = Join-Path $Target $file
+        if (Remove-FileIfExists -Path $path) {
+            $removed++
+        }
+    }
+
+    # Clean up empty directories (leaf to root)
+    $dirs = @(
+        "skills",
+        "commands\sdd\tools",
+        "commands\sdd\fast",
+        "commands\sdd",
+        "commands\create",
+        "commands",
+        "agents"
+    )
+
+    foreach ($dir in $dirs) {
+        Remove-EmptyDirectory -Path (Join-Path $Target $dir)
+    }
+
+    return $removed
+}
+
+# Check if OpenCode installation exists
+function Test-OpenCodeExists {
+    param($Target)
+    return (Test-Path "$Target\agent\sdd") -or (Test-Path "$Target\command\sdd") -or (Test-Path "$Target\agent\librarian.md")
+}
+
+# Check if Augment installation exists
+function Test-AugmentExists {
+    param($Target)
+    return (Test-Path "$Target\commands\sdd") -or (Test-Path "$Target\agents\librarian.md")
+}
+
 # Main
 function Main {
     Write-Host ""
-    Write-Host "  OpenCode SDD Uninstaller"
-    Write-Host "  ========================"
+    Write-Host "  Agent Extensions Uninstaller"
+    Write-Host "  ============================"
     Write-Host ""
 
+    # Determine possible locations
+    $OpenCodeGlobal = Join-Path $HOME ".config\opencode"
+    $AugmentGlobal = Join-Path $HOME ".augment"
+    $LocalRoot = Find-GitRoot
+
     # Check what installations exist
-    $GlobalRoot = Join-Path $HOME ".config\opencode"
-    $LocalRoot = $null
+    $OpenCodeGlobalExists = Test-OpenCodeExists -Target $OpenCodeGlobal
+    $OpenCodeLocalExists = $false
+    $AugmentGlobalExists = Test-AugmentExists -Target $AugmentGlobal
+    $AugmentLocalExists = $false
 
-    $GitRoot = Find-GitRoot
-    if ($GitRoot) {
-        $LocalRoot = Join-Path $GitRoot ".opencode"
+    if ($LocalRoot) {
+        $OpenCodeLocalExists = Test-OpenCodeExists -Target (Join-Path $LocalRoot ".opencode")
+        $AugmentLocalExists = Test-AugmentExists -Target (Join-Path $LocalRoot ".augment")
     }
 
-    $GlobalExists = $false
-    $LocalExists = $false
+    # Build found list
+    $FoundAny = $false
+    Write-Host "Found installations:"
+    Write-Host ""
 
-    if ((Test-Path "$GlobalRoot\agent\sdd") -or (Test-Path "$GlobalRoot\command\sdd")) {
-        $GlobalExists = $true
+    if ($OpenCodeGlobalExists) {
+        Write-Host "  - OpenCode (global): $OpenCodeGlobal"
+        $FoundAny = $true
+    }
+    if ($OpenCodeLocalExists) {
+        Write-Host "  - OpenCode (local): $LocalRoot\.opencode"
+        $FoundAny = $true
+    }
+    if ($AugmentGlobalExists) {
+        Write-Host "  - Augment (global): $AugmentGlobal"
+        $FoundAny = $true
+    }
+    if ($AugmentLocalExists) {
+        Write-Host "  - Augment (local): $LocalRoot\.augment"
+        $FoundAny = $true
     }
 
-    if ($LocalRoot -and ((Test-Path "$LocalRoot\agent\sdd") -or (Test-Path "$LocalRoot\command\sdd"))) {
-        $LocalExists = $true
-    }
-
-    if (-not $GlobalExists -and -not $LocalExists) {
-        Write-Host "No SDD installation found."
-        Write-Host ""
-        Write-Host "Checked:"
-        Write-Host "  - Global: $GlobalRoot"
-        if ($LocalRoot) {
-            Write-Host "  - Local:  $LocalRoot"
-        } else {
-            Write-Host "  - Local:  (not in a git repository)"
-        }
+    if (-not $FoundAny) {
+        Write-Host "  (none)"
         Write-Host ""
         exit 0
     }
 
-    Write-Host "Found SDD installation(s):"
-    Write-Host ""
-    if ($GlobalExists) {
-        Write-Host "  1) Global ($GlobalRoot)"
-    }
-    if ($LocalExists) {
-        Write-Host "  2) Local ($LocalRoot)"
-    }
     Write-Host ""
 
-    # Determine what to uninstall
+    # Ask which tool to uninstall
+    Write-Host "Which tool(s) would you like to uninstall?"
+    Write-Host "  1) OpenCode"
+    Write-Host "  2) Augment"
+    Write-Host "  3) Both"
+    Write-Host ""
+    $toolChoice = Read-Host "Enter choice [1/2/3]"
+
+    $UninstallOpenCode = $false
+    $UninstallAugment = $false
+
+    switch ($toolChoice) {
+        "1" { $UninstallOpenCode = $true }
+        "2" { $UninstallAugment = $true }
+        "3" { $UninstallOpenCode = $true; $UninstallAugment = $true }
+        default { Write-Err "Invalid choice" }
+    }
+
+    # Ask which scope to uninstall
+    Write-Host ""
+    Write-Host "Which installation scope?"
+    Write-Host "  1) Global only"
+    Write-Host "  2) Local only"
+    Write-Host "  3) Both"
+    Write-Host ""
+    $scopeChoice = Read-Host "Enter choice [1/2/3]"
+
     $UninstallGlobal = $false
     $UninstallLocal = $false
 
-    if ($GlobalExists -and $LocalExists) {
-        Write-Host "What would you like to uninstall?"
-        Write-Host "  1) Global only"
-        Write-Host "  2) Local only"
-        Write-Host "  3) Both"
-        Write-Host ""
-        $choice = Read-Host "Enter choice [1/2/3]"
-        switch ($choice) {
-            "1" { $UninstallGlobal = $true; $UninstallLocal = $false }
-            "2" { $UninstallGlobal = $false; $UninstallLocal = $true }
-            "3" { $UninstallGlobal = $true; $UninstallLocal = $true }
-            default { Write-Err "Invalid choice" }
-        }
-    } elseif ($GlobalExists) {
-        $UninstallGlobal = $true
-    } else {
-        $UninstallLocal = $true
+    switch ($scopeChoice) {
+        "1" { $UninstallGlobal = $true }
+        "2" { $UninstallLocal = $true }
+        "3" { $UninstallGlobal = $true; $UninstallLocal = $true }
+        default { Write-Err "Invalid choice" }
     }
 
     Write-Host ""
     Write-Warn "This will remove SDD agents, commands, and skills."
-    Write-Warn "Your project files (changes/, docs/specs/, etc.) will NOT be affected."
+    Write-Warn "Your project files (changes/, specs/, etc.) will NOT be affected."
     Write-Host ""
 
     $confirm = Read-Host "Proceed with uninstall? [y/N]"
@@ -142,21 +304,50 @@ function Main {
 
     Write-Host ""
 
-    # Perform uninstall
-    if ($UninstallGlobal) {
-        Write-Info "Removing global installation..."
-        $count = Remove-SDDFiles -Target $GlobalRoot
-        Write-Success "Removed $count items from $GlobalRoot"
+    $TotalRemoved = 0
+
+    # Uninstall OpenCode
+    if ($UninstallOpenCode) {
+        if ($UninstallGlobal -and $OpenCodeGlobalExists) {
+            Write-Info "Removing OpenCode (global)..."
+            $count = Remove-OpenCodeFiles -Target $OpenCodeGlobal
+            Write-Success "Removed $count files from $OpenCodeGlobal"
+            $TotalRemoved += $count
+        }
+
+        if ($UninstallLocal -and $OpenCodeLocalExists) {
+            Write-Info "Removing OpenCode (local)..."
+            $localPath = Join-Path $LocalRoot ".opencode"
+            $count = Remove-OpenCodeFiles -Target $localPath
+            Write-Success "Removed $count files from $localPath"
+            $TotalRemoved += $count
+        }
     }
 
-    if ($UninstallLocal) {
-        Write-Info "Removing local installation..."
-        $count = Remove-SDDFiles -Target $LocalRoot
-        Write-Success "Removed $count items from $LocalRoot"
+    # Uninstall Augment
+    if ($UninstallAugment) {
+        if ($UninstallGlobal -and $AugmentGlobalExists) {
+            Write-Info "Removing Augment (global)..."
+            $count = Remove-AugmentFiles -Target $AugmentGlobal
+            Write-Success "Removed $count files from $AugmentGlobal"
+            $TotalRemoved += $count
+        }
+
+        if ($UninstallLocal -and $AugmentLocalExists) {
+            Write-Info "Removing Augment (local)..."
+            $localPath = Join-Path $LocalRoot ".augment"
+            $count = Remove-AugmentFiles -Target $localPath
+            Write-Success "Removed $count files from $localPath"
+            $TotalRemoved += $count
+        }
     }
 
     Write-Host ""
-    Write-Success "SDD uninstalled successfully!"
+    if ($TotalRemoved -gt 0) {
+        Write-Success "Uninstall complete! Removed $TotalRemoved files."
+    } else {
+        Write-Warn "No files were removed (installations may not exist at selected locations)."
+    }
     Write-Host ""
 }
 

@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-# OpenCode SDD Installer (macOS/Linux)
-# Downloads and installs the Spec-Driven Development process for OpenCode
+# Agent Extensions Installer (macOS/Linux)
+# Downloads and installs the Spec-Driven Development process for OpenCode and/or Augment
 
 REPO_OWNER="BrassworksAI"
-REPO_NAME="opencode-sdd"
+REPO_NAME="agent-extensions"
 BRANCH="main"
 ARCHIVE_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/archive/refs/heads/${BRANCH}.tar.gz"
 
@@ -60,64 +60,24 @@ confirm() {
   esac
 }
 
-# Main
-main() {
-  echo ""
-  echo "  OpenCode SDD Installer"
-  echo "  ======================"
-  echo ""
-
-  # Choose install mode
-  echo "Where would you like to install?"
-  echo "  1) Global (~/.config/opencode)"
-  echo "  2) Local (current repo's .opencode folder)"
-  echo ""
-  printf "Enter choice [1/2]: "
-  read -r choice
-
-  case "$choice" in
-    1)
-      INSTALL_MODE="global"
-      TARGET_ROOT="$HOME/.config/opencode"
-      ;;
-    2)
-      INSTALL_MODE="local"
-      GIT_ROOT="$(find_git_root)" || error "Not inside a git repository. Cannot determine repo root for local install."
-      TARGET_ROOT="$GIT_ROOT/.opencode"
-      ;;
-    *)
-      error "Invalid choice. Please enter 1 or 2."
-      ;;
-  esac
-
-  info "Install mode: $INSTALL_MODE"
-  info "Target: $TARGET_ROOT"
-  echo ""
-
-  # Create temp directory
-  TMP_DIR="$(mktemp -d)"
-  info "Downloading archive..."
-
-  # Download and extract
-  curl -fsSL "$ARCHIVE_URL" -o "$TMP_DIR/repo.tar.gz" || error "Failed to download archive"
-  tar -xzf "$TMP_DIR/repo.tar.gz" -C "$TMP_DIR" || error "Failed to extract archive"
-
-  # Find extracted directory (GitHub names it <repo>-<branch>)
-  EXTRACTED_DIR="$TMP_DIR/${REPO_NAME}-${BRANCH}"
-  PAYLOAD_DIR="$EXTRACTED_DIR/opencode"
+# Install files from payload to target
+# Arguments: $1 = payload dir, $2 = target root, $3 = label
+install_files() {
+  PAYLOAD_DIR="$1"
+  TARGET_ROOT="$2"
+  LABEL="$3"
 
   if [ ! -d "$PAYLOAD_DIR" ]; then
-    error "Payload directory 'opencode/' not found in archive"
+    warn "Payload directory '$PAYLOAD_DIR' not found, skipping $LABEL"
+    return 1
   fi
 
-  success "Downloaded and extracted"
+  info "Installing $LABEL to: $TARGET_ROOT"
 
   # Build file list and detect conflicts
-  info "Scanning for conflicts..."
   CONFLICTS=""
   CONFLICT_COUNT=0
 
-  # Use find to get all files in payload
   cd "$PAYLOAD_DIR"
   FILES="$(find . -type f | sed 's|^\./||')"
   cd - > /dev/null
@@ -133,26 +93,21 @@ main() {
   # Handle conflicts
   if [ $CONFLICT_COUNT -gt 0 ]; then
     echo ""
-    warn "Found $CONFLICT_COUNT conflicting file(s) that would be overwritten:"
+    warn "Found $CONFLICT_COUNT conflicting file(s) for $LABEL:"
     echo ""
     printf "$CONFLICTS" | head -20
     if [ $CONFLICT_COUNT -gt 20 ]; then
       echo "  ... and $((CONFLICT_COUNT - 20)) more"
     fi
     echo ""
-    warn "Back up any files you want to keep before proceeding."
-    echo ""
-    if ! confirm "Overwrite ALL conflicting files?"; then
-      error "Installation aborted by user"
+    if ! confirm "Overwrite conflicting files for $LABEL?"; then
+      warn "Skipping $LABEL install"
+      return 1
     fi
     echo ""
-  else
-    success "No conflicts detected"
   fi
 
   # Copy files
-  info "Installing files..."
-
   for file in $FILES; do
     src="$PAYLOAD_DIR/$file"
     dest="$TARGET_ROOT/$file"
@@ -166,14 +121,125 @@ main() {
     cp "$src" "$dest" || error "Failed to copy $file"
   done
 
+  success "Installed $LABEL to: $TARGET_ROOT"
+  return 0
+}
+
+# Main
+main() {
   echo ""
+  echo "  Agent Extensions Installer"
+  echo "  ==========================="
+  echo ""
+
+  # Choose tool
+  echo "Which tool(s) would you like to install extensions for?"
+  echo "  1) OpenCode"
+  echo "  2) Augment (Auggie)"
+  echo "  3) Both"
+  echo ""
+  printf "Enter choice [1/2/3]: "
+  read -r tool_choice
+
+  INSTALL_OPENCODE=""
+  INSTALL_AUGMENT=""
+
+  case "$tool_choice" in
+    1)
+      INSTALL_OPENCODE="yes"
+      ;;
+    2)
+      INSTALL_AUGMENT="yes"
+      ;;
+    3)
+      INSTALL_OPENCODE="yes"
+      INSTALL_AUGMENT="yes"
+      ;;
+    *)
+      error "Invalid choice. Please enter 1, 2, or 3."
+      ;;
+  esac
+
+  # Choose install mode
+  echo ""
+  echo "Where would you like to install?"
+  echo "  1) Global (user config directory)"
+  echo "  2) Local (current repo)"
+  echo ""
+  printf "Enter choice [1/2]: "
+  read -r scope_choice
+
+  case "$scope_choice" in
+    1)
+      INSTALL_MODE="global"
+      ;;
+    2)
+      INSTALL_MODE="local"
+      GIT_ROOT="$(find_git_root)" || error "Not inside a git repository. Cannot determine repo root for local install."
+      ;;
+    *)
+      error "Invalid choice. Please enter 1 or 2."
+      ;;
+  esac
+
+  # Set target directories based on choices
+  if [ "$INSTALL_MODE" = "global" ]; then
+    OPENCODE_TARGET="$HOME/.config/opencode"
+    AUGMENT_TARGET="$HOME/.augment"
+  else
+    OPENCODE_TARGET="$GIT_ROOT/.opencode"
+    AUGMENT_TARGET="$GIT_ROOT/.augment"
+  fi
+
+  echo ""
+  info "Install mode: $INSTALL_MODE"
+  [ -n "$INSTALL_OPENCODE" ] && info "OpenCode target: $OPENCODE_TARGET"
+  [ -n "$INSTALL_AUGMENT" ] && info "Augment target: $AUGMENT_TARGET"
+  echo ""
+
+  # Create temp directory
+  TMP_DIR="$(mktemp -d)"
+  info "Downloading archive..."
+
+  # Download and extract
+  curl -fsSL "$ARCHIVE_URL" -o "$TMP_DIR/repo.tar.gz" || error "Failed to download archive"
+  tar -xzf "$TMP_DIR/repo.tar.gz" -C "$TMP_DIR" || error "Failed to extract archive"
+
+  # Find extracted directory (GitHub names it <repo>-<branch>)
+  EXTRACTED_DIR="$TMP_DIR/${REPO_NAME}-${BRANCH}"
+
+  success "Downloaded and extracted"
+  echo ""
+
+  INSTALLED_COUNT=0
+
+  # Install OpenCode if requested
+  if [ -n "$INSTALL_OPENCODE" ]; then
+    OPENCODE_PAYLOAD="$EXTRACTED_DIR/opencode"
+    if install_files "$OPENCODE_PAYLOAD" "$OPENCODE_TARGET" "OpenCode"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
+    echo ""
+  fi
+
+  # Install Augment if requested
+  if [ -n "$INSTALL_AUGMENT" ]; then
+    AUGMENT_PAYLOAD="$EXTRACTED_DIR/augment"
+    if install_files "$AUGMENT_PAYLOAD" "$AUGMENT_TARGET" "Augment"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
+    echo ""
+  fi
+
+  if [ $INSTALLED_COUNT -eq 0 ]; then
+    error "No installations completed"
+  fi
+
   success "Installation complete!"
-  echo ""
-  info "Installed to: $TARGET_ROOT"
   echo ""
 
   if [ "$INSTALL_MODE" = "global" ]; then
-    echo "SDD commands are now available globally in OpenCode."
+    echo "SDD commands are now available globally."
   else
     echo "SDD commands are now available for this repository."
   fi

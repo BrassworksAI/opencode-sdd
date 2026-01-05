@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-# OpenCode SDD Uninstaller (macOS/Linux)
-# Removes the Spec-Driven Development process for OpenCode
+# Agent Extensions Uninstaller (macOS/Linux)
+# Removes the Spec-Driven Development process for OpenCode and/or Augment
 
 # Colors (if terminal supports them)
 if [ -t 1 ]; then
@@ -47,113 +47,292 @@ find_git_root() {
   return 1
 }
 
-# Remove SDD files from a target directory
-remove_sdd_files() {
+# Remove a file or symlink if it exists
+remove_file() {
+  path="$1"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    rm -f "$path"
+    return 0
+  fi
+  return 1
+}
+
+# Remove a directory only if it's empty
+remove_empty_dir() {
+  dir="$1"
+  if [ -d "$dir" ] && [ -z "$(ls -A "$dir" 2>/dev/null)" ]; then
+    rmdir "$dir" 2>/dev/null || true
+  fi
+}
+
+# Remove OpenCode SDD files from a target directory
+remove_opencode_files() {
   target="$1"
   removed=0
 
-  # SDD agent directories and files
-  for path in \
-    "$target/agent/sdd" \
-    "$target/agent/search" \
-    "$target/agent/librarian.md" \
-    "$target/agent/chat.md" \
-    "$target/command/sdd" \
-    "$target/command/create" \
-    "$target/skill/spec-format" \
-    "$target/skill/sdd-state-management" \
-    "$target/skill/research" \
-    "$target/skill/architecture-fit-check" \
-    "$target/skill/architecture-workshop" \
-    "$target/skill/bun-shell-commands" \
-    "$target/skill/keep-current" \
-    "$target/skill/skill-creator"
-  do
-    if [ -e "$path" ] || [ -L "$path" ]; then
-      rm -rf "$path"
+  # OpenCode file list - exact files installed
+  files="
+    agent/sdd/forge.md
+    agent/librarian.md
+    agent/chat.md
+    command/sdd/init.md
+    command/sdd/plan.md
+    command/sdd/implement.md
+    command/sdd/proposal.md
+    command/sdd/specs.md
+    command/sdd/discovery.md
+    command/sdd/tasks.md
+    command/sdd/reconcile.md
+    command/sdd/finish.md
+    command/sdd/continue.md
+    command/sdd/status.md
+    command/sdd/brainstorm.md
+    command/sdd/explain.md
+    command/sdd/fast/vibe.md
+    command/sdd/fast/bug.md
+    command/sdd/tools/critique.md
+    command/sdd/tools/scenario-test.md
+    command/sdd/tools/taxonomy-map.md
+    command/sdd/tools/prime-specs.md
+    command/create/agent.md
+    command/create/command.md
+    skill/spec-format/SKILL.md
+    skill/sdd-state-management/SKILL.md
+    skill/research/SKILL.md
+    skill/architecture-fit-check/SKILL.md
+    skill/architecture-workshop/SKILL.md
+    skill/bun-shell-commands/SKILL.md
+    skill/keep-current/SKILL.md
+    skill/skill-creator/SKILL.md
+    skill/skill-creator/deno.json
+    skill/skill-creator/deno.lock
+    skill/skill-creator/scripts/deps.ts
+    skill/skill-creator/scripts/init_skill.ts
+    skill/skill-creator/scripts/quick_validate.ts
+    skill/skill-creator/references/deno-runtime.md
+    skill/skill-creator/references/output-patterns.md
+    skill/skill-creator/references/script_rules.md
+    skill/skill-creator/references/workflows.md
+  "
+
+  for file in $files; do
+    if remove_file "$target/$file"; then
       removed=$((removed + 1))
     fi
+  done
+
+  # Clean up empty directories (leaf to root)
+  dirs="
+    skill/skill-creator/references
+    skill/skill-creator/scripts
+    skill/skill-creator
+    skill/spec-format
+    skill/sdd-state-management
+    skill/research
+    skill/architecture-fit-check
+    skill/architecture-workshop
+    skill/bun-shell-commands
+    skill/keep-current
+    skill
+    command/sdd/tools
+    command/sdd/fast
+    command/sdd
+    command/create
+    command
+    agent/sdd
+    agent
+  "
+
+  for dir in $dirs; do
+    remove_empty_dir "$target/$dir"
   done
 
   echo "$removed"
 }
 
+# Remove Augment SDD files from a target directory
+remove_augment_files() {
+  target="$1"
+  removed=0
+
+  # Augment file list - exact files installed
+  files="
+    agents/librarian.md
+    commands/sdd/init.md
+    commands/sdd/plan.md
+    commands/sdd/implement.md
+    commands/sdd/proposal.md
+    commands/sdd/specs.md
+    commands/sdd/discovery.md
+    commands/sdd/tasks.md
+    commands/sdd/reconcile.md
+    commands/sdd/finish.md
+    commands/sdd/continue.md
+    commands/sdd/status.md
+    commands/sdd/brainstorm.md
+    commands/sdd/explain.md
+    commands/sdd/fast/vibe.md
+    commands/sdd/fast/bug.md
+    commands/sdd/tools/critique.md
+    commands/sdd/tools/scenario-test.md
+    commands/sdd/tools/taxonomy-map.md
+    commands/sdd/tools/prime-specs.md
+    commands/create/agent.md
+    commands/create/command.md
+    skills/sdd-state-management.md
+    skills/spec-format.md
+    skills/research.md
+    skills/architecture-fit-check.md
+    skills/architecture-workshop.md
+    skills/keep-current.md
+  "
+
+  for file in $files; do
+    if remove_file "$target/$file"; then
+      removed=$((removed + 1))
+    fi
+  done
+
+  # Clean up empty directories (leaf to root)
+  dirs="
+    skills
+    commands/sdd/tools
+    commands/sdd/fast
+    commands/sdd
+    commands/create
+    commands
+    agents
+  "
+
+  for dir in $dirs; do
+    remove_empty_dir "$target/$dir"
+  done
+
+  echo "$removed"
+}
+
+# Check if OpenCode installation exists
+check_opencode_exists() {
+  target="$1"
+  [ -d "$target/agent/sdd" ] || [ -d "$target/command/sdd" ] || [ -f "$target/agent/librarian.md" ]
+}
+
+# Check if Augment installation exists
+check_augment_exists() {
+  target="$1"
+  [ -d "$target/commands/sdd" ] || [ -f "$target/agents/librarian.md" ]
+}
+
 # Main
 main() {
   echo ""
-  echo "  OpenCode SDD Uninstaller"
-  echo "  ========================"
+  echo "  Agent Extensions Uninstaller"
+  echo "  ============================"
   echo ""
 
-  # Check what installations exist
-  GLOBAL_ROOT="$HOME/.config/opencode"
+  # Determine possible locations
+  OPENCODE_GLOBAL="$HOME/.config/opencode"
+  AUGMENT_GLOBAL="$HOME/.augment"
   LOCAL_ROOT=""
   
   if GIT_ROOT="$(find_git_root 2>/dev/null)"; then
-    LOCAL_ROOT="$GIT_ROOT/.opencode"
+    LOCAL_ROOT="$GIT_ROOT"
   fi
 
-  GLOBAL_EXISTS=false
-  LOCAL_EXISTS=false
+  # Check what installations exist
+  OPENCODE_GLOBAL_EXISTS=false
+  OPENCODE_LOCAL_EXISTS=false
+  AUGMENT_GLOBAL_EXISTS=false
+  AUGMENT_LOCAL_EXISTS=false
 
-  if [ -d "$GLOBAL_ROOT/agent/sdd" ] || [ -d "$GLOBAL_ROOT/command/sdd" ]; then
-    GLOBAL_EXISTS=true
+  if check_opencode_exists "$OPENCODE_GLOBAL"; then
+    OPENCODE_GLOBAL_EXISTS=true
   fi
 
-  if [ -n "$LOCAL_ROOT" ] && { [ -d "$LOCAL_ROOT/agent/sdd" ] || [ -d "$LOCAL_ROOT/command/sdd" ]; }; then
-    LOCAL_EXISTS=true
+  if [ -n "$LOCAL_ROOT" ] && check_opencode_exists "$LOCAL_ROOT/.opencode"; then
+    OPENCODE_LOCAL_EXISTS=true
   fi
 
-  if [ "$GLOBAL_EXISTS" = false ] && [ "$LOCAL_EXISTS" = false ]; then
-    echo "No SDD installation found."
-    echo ""
-    echo "Checked:"
-    echo "  - Global: $GLOBAL_ROOT"
-    if [ -n "$LOCAL_ROOT" ]; then
-      echo "  - Local:  $LOCAL_ROOT"
-    else
-      echo "  - Local:  (not in a git repository)"
-    fi
+  if check_augment_exists "$AUGMENT_GLOBAL"; then
+    AUGMENT_GLOBAL_EXISTS=true
+  fi
+
+  if [ -n "$LOCAL_ROOT" ] && check_augment_exists "$LOCAL_ROOT/.augment"; then
+    AUGMENT_LOCAL_EXISTS=true
+  fi
+
+  # Build found list
+  FOUND_ANY=false
+  echo "Found installations:"
+  echo ""
+  
+  if [ "$OPENCODE_GLOBAL_EXISTS" = true ]; then
+    echo "  - OpenCode (global): $OPENCODE_GLOBAL"
+    FOUND_ANY=true
+  fi
+  if [ "$OPENCODE_LOCAL_EXISTS" = true ]; then
+    echo "  - OpenCode (local): $LOCAL_ROOT/.opencode"
+    FOUND_ANY=true
+  fi
+  if [ "$AUGMENT_GLOBAL_EXISTS" = true ]; then
+    echo "  - Augment (global): $AUGMENT_GLOBAL"
+    FOUND_ANY=true
+  fi
+  if [ "$AUGMENT_LOCAL_EXISTS" = true ]; then
+    echo "  - Augment (local): $LOCAL_ROOT/.augment"
+    FOUND_ANY=true
+  fi
+
+  if [ "$FOUND_ANY" = false ]; then
+    echo "  (none)"
     echo ""
     exit 0
   fi
 
-  echo "Found SDD installation(s):"
-  echo ""
-  if [ "$GLOBAL_EXISTS" = true ]; then
-    echo "  1) Global ($GLOBAL_ROOT)"
-  fi
-  if [ "$LOCAL_EXISTS" = true ]; then
-    echo "  2) Local ($LOCAL_ROOT)"
-  fi
   echo ""
 
-  # Determine what to uninstall
-  if [ "$GLOBAL_EXISTS" = true ] && [ "$LOCAL_EXISTS" = true ]; then
-    echo "What would you like to uninstall?"
-    echo "  1) Global only"
-    echo "  2) Local only"
-    echo "  3) Both"
-    echo ""
-    printf "Enter choice [1/2/3]: "
-    read -r choice
-    case "$choice" in
-      1) UNINSTALL_GLOBAL=true; UNINSTALL_LOCAL=false ;;
-      2) UNINSTALL_GLOBAL=false; UNINSTALL_LOCAL=true ;;
-      3) UNINSTALL_GLOBAL=true; UNINSTALL_LOCAL=true ;;
-      *) error "Invalid choice" ;;
-    esac
-  elif [ "$GLOBAL_EXISTS" = true ]; then
-    UNINSTALL_GLOBAL=true
-    UNINSTALL_LOCAL=false
-  else
-    UNINSTALL_GLOBAL=false
-    UNINSTALL_LOCAL=true
-  fi
+  # Ask which tool to uninstall
+  echo "Which tool(s) would you like to uninstall?"
+  echo "  1) OpenCode"
+  echo "  2) Augment"
+  echo "  3) Both"
+  echo ""
+  printf "Enter choice [1/2/3]: "
+  read -r tool_choice
+
+  UNINSTALL_OPENCODE=""
+  UNINSTALL_AUGMENT=""
+
+  case "$tool_choice" in
+    1) UNINSTALL_OPENCODE="yes" ;;
+    2) UNINSTALL_AUGMENT="yes" ;;
+    3) UNINSTALL_OPENCODE="yes"; UNINSTALL_AUGMENT="yes" ;;
+    *) error "Invalid choice" ;;
+  esac
+
+  # Ask which scope to uninstall
+  echo ""
+  echo "Which installation scope?"
+  echo "  1) Global only"
+  echo "  2) Local only"
+  echo "  3) Both"
+  echo ""
+  printf "Enter choice [1/2/3]: "
+  read -r scope_choice
+
+  UNINSTALL_GLOBAL=""
+  UNINSTALL_LOCAL=""
+
+  case "$scope_choice" in
+    1) UNINSTALL_GLOBAL="yes" ;;
+    2) UNINSTALL_LOCAL="yes" ;;
+    3) UNINSTALL_GLOBAL="yes"; UNINSTALL_LOCAL="yes" ;;
+    *) error "Invalid choice" ;;
+  esac
 
   echo ""
   warn "This will remove SDD agents, commands, and skills."
-  warn "Your project files (changes/, docs/specs/, etc.) will NOT be affected."
+  warn "Your project files (changes/, specs/, etc.) will NOT be affected."
   echo ""
 
   if ! confirm "Proceed with uninstall?"; then
@@ -163,21 +342,48 @@ main() {
 
   echo ""
 
-  # Perform uninstall
-  if [ "$UNINSTALL_GLOBAL" = true ]; then
-    info "Removing global installation..."
-    count=$(remove_sdd_files "$GLOBAL_ROOT")
-    success "Removed $count items from $GLOBAL_ROOT"
+  TOTAL_REMOVED=0
+
+  # Uninstall OpenCode
+  if [ -n "$UNINSTALL_OPENCODE" ]; then
+    if [ -n "$UNINSTALL_GLOBAL" ] && [ "$OPENCODE_GLOBAL_EXISTS" = true ]; then
+      info "Removing OpenCode (global)..."
+      count=$(remove_opencode_files "$OPENCODE_GLOBAL")
+      success "Removed $count files from $OPENCODE_GLOBAL"
+      TOTAL_REMOVED=$((TOTAL_REMOVED + count))
+    fi
+
+    if [ -n "$UNINSTALL_LOCAL" ] && [ "$OPENCODE_LOCAL_EXISTS" = true ]; then
+      info "Removing OpenCode (local)..."
+      count=$(remove_opencode_files "$LOCAL_ROOT/.opencode")
+      success "Removed $count files from $LOCAL_ROOT/.opencode"
+      TOTAL_REMOVED=$((TOTAL_REMOVED + count))
+    fi
   fi
 
-  if [ "$UNINSTALL_LOCAL" = true ]; then
-    info "Removing local installation..."
-    count=$(remove_sdd_files "$LOCAL_ROOT")
-    success "Removed $count items from $LOCAL_ROOT"
+  # Uninstall Augment
+  if [ -n "$UNINSTALL_AUGMENT" ]; then
+    if [ -n "$UNINSTALL_GLOBAL" ] && [ "$AUGMENT_GLOBAL_EXISTS" = true ]; then
+      info "Removing Augment (global)..."
+      count=$(remove_augment_files "$AUGMENT_GLOBAL")
+      success "Removed $count files from $AUGMENT_GLOBAL"
+      TOTAL_REMOVED=$((TOTAL_REMOVED + count))
+    fi
+
+    if [ -n "$UNINSTALL_LOCAL" ] && [ "$AUGMENT_LOCAL_EXISTS" = true ]; then
+      info "Removing Augment (local)..."
+      count=$(remove_augment_files "$LOCAL_ROOT/.augment")
+      success "Removed $count files from $LOCAL_ROOT/.augment"
+      TOTAL_REMOVED=$((TOTAL_REMOVED + count))
+    fi
   fi
 
   echo ""
-  success "SDD uninstalled successfully!"
+  if [ $TOTAL_REMOVED -gt 0 ]; then
+    success "Uninstall complete! Removed $TOTAL_REMOVED files."
+  else
+    warn "No files were removed (installations may not exist at selected locations)."
+  fi
   echo ""
 }
 
