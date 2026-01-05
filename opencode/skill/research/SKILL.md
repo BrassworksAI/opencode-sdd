@@ -20,11 +20,11 @@ Research the codebase when you need to:
 
 ## The Librarian
 
-The `librarian` agent is the universal entry point for research. It:
+The `librarian` agent is the universal research agent. It:
 
 - Clarifies what you're looking for
-- Routes to specialized search agents (scout for simple lookups, code for deep analysis)
-- Synthesizes findings into actionable answers
+- Performs fast reconnaissance and deep codebase analysis exhaustively
+- Returns structured, comprehensive findings
 - Determines when research is complete
 
 **Never search the codebase directly** when doing SDD work. Always delegate to librarian.
