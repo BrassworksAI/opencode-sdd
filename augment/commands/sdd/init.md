@@ -15,6 +15,8 @@ Create a new SDD change set with the given name.
 
 ## Instructions
 
+> **Scope**: This command ONLY creates folder structure and initial template files. Do NOT begin brainstorming, research, code analysis, or any other work. Scaffold and stop.
+
 1. **Validate name**: Ensure name is kebab-case, no spaces, lowercase
 2. **Check for conflicts**: Verify `changes/<name>/` doesn't already exist
 3. **Create structure**:
@@ -59,4 +61,4 @@ Create a new SDD change set with the given name.
 
    (High-level approach - freeform)
    ```
-6. **Report**: Confirm creation and suggest next step (`/sdd:brainstorm` or `/sdd:proposal`)
+6. **Report**: Confirm creation and tell the user they can run `/sdd:brainstorm` or `/sdd:proposal` next. **Stop here — do not continue with any further work.**
