@@ -51,16 +51,48 @@ For vibe or bug work, redirect user to the appropriate fast command.
 
 Update state.md with selected lane.
 
+### Collaborative Refinement
+
+This is a dialogue, not a generation task. The user brings whatever definition they have—a half-formed idea, a detailed vision, a conversation summary—and you help them refine it into something complete enough for specs.
+
+**The user is the domain expert.** They have tribal knowledge about users, business context, past decisions, and constraints that isn't written anywhere. Your job is to help them externalize and articulate it, not to invent it.
+
+**Ask, don't assume.** When there's a gap, surface it as a question: "What happens if the upload fails mid-stream?" Don't fill gaps with guesses.
+
+**Recommend, don't decide.** If you see a pattern in the codebase that might apply: "Based on how similar features work, you might want to handle this as X—does that fit?" Let the user decide.
+
+**Surface logic gaps.** When the described behavior has holes: "You mentioned auto-save, but what happens if the user is offline? Is that something we need to handle?" Ask if it should be considered, then let them answer.
+
 ### Proposal Content
 
-Proposals are **freeform** - capture intent in whatever structure works. Common elements:
+A proposal describes **how the system works**—written so anyone could read it and understand the feature.
 
-- **Problem**: What problem are we solving?
-- **Goals**: What does success look like?
-- **Non-Goals**: What are we explicitly NOT doing?
-- **Approach**: High-level solution direction
-- **Risks**: What could go wrong?
-- **Definition of Done**: How do we know we're finished?
+**Start with the problem.** One or two sentences on what pain exists today. This anchors everything that follows.
+
+**Cover the full behavior.** Write in narrative prose. Be specific and concrete.
+
+- What does the user do? What happens in response?
+- What does the system do automatically? When and why?
+- What happens when things go wrong? How does the system recover or report?
+- If there are different modes or states, how do they differ?
+
+**Leave nothing implied.** If there's behavior the user is picturing but hasn't written down, it won't make it to specs. The proposal is the complete source of truth for what gets built.
+
+**Stay affirmative.** Describe what the system does, not what it doesn't do. Scope exclusions, future considerations, and hedged commitments ("if time permits...") dilute focus and create noise for the specs phase. If you need to track these, put them in `boundaries.md` or `future.md`—not in the proposal.
+
+### Structure Sensing
+
+As the user describes the feature, notice when natural boundaries emerge:
+
+**Capability boundaries.** "It sounds like there are two distinct capabilities here: the edit flow itself, and the validation that happens before saving. Am I reading that right?"
+
+**Domain awareness.** "So this would live under notifications, or is it more of a user-preferences thing?" Ask rather than decide—help the user identify where this belongs.
+
+Don't force structure prematurely. The goal is to surface what's emerging and check if your framing matches the user's mental model. This makes the specs phase easier without imposing a taxonomy.
+
+### Readiness
+
+A proposal is ready for specs when you can answer "how does the system handle..." for any scenario using only what's written.
 
 ### Critique (Recommended)
 
