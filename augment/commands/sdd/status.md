@@ -1,21 +1,26 @@
 ---
-description: Show status of change sets
-argument-hint: [change-set-name|all]
+description: Show status of change set
+argument-hint: <change-set-name>
 ---
 
 # Status
 
-Show status of SDD change sets.
+Show status of an SDD change set.
 
 ## Arguments
 
-- `$ARGUMENTS` - Optional: specific change set name, or "all"
+- `$ARGUMENTS` - Required: change set name
 
 ## Instructions
 
-### Specific Change Set
+### Check Arguments
 
-If name provided:
+If `$ARGUMENTS` is not provided or empty:
+- Stop immediately
+- Ask: "What change set would you like me to report on?"
+- Do not proceed with any other steps
+
+### Read State Document
 
 1. Read `changes/<name>/state.md`
 2. Read `changes/<name>/tasks.md` if exists
@@ -27,17 +32,6 @@ Report:
 - Status notes (from `## Notes`)
 - Task progress if in plan/implement phase (e.g., [x] 2, [o] 1, [ ] 5)
 - Next suggested action
-
-### All Change Sets
-
-If "all" or no arguments:
-
-1. Find all `changes/*/state.md`
-2. For each, report summary:
-    - Name
-    - Phase and status
-    - Lane
-    - Brief status (including task completion ratio if in tasks/plan/implement phase)
 
 ### Output Format
 

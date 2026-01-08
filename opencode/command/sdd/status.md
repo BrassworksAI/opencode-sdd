@@ -1,6 +1,6 @@
 ---
 name: sdd/status
-description: Show status of change sets
+description: Show status of injected change set
 agent: sdd/plan
 ---
 
@@ -8,17 +8,24 @@ agent: sdd/plan
 
 # Status
 
-Show the status of SDD change sets.
+Show the status of an SDD change set.
 
 ## Arguments
 
-- `$ARGUMENTS` - Optional: specific change set name, or "all"
+- `$ARGUMENTS` - Required: change set name
 
 ## Instructions
 
-### Specific Change Set
+### Check Arguments
 
-If name provided:
+If `$ARGUMENTS` is not provided or empty:
+- Stop immediately
+- Ask: "What change set would you like me to report on?"
+- Do not proceed with any other steps
+
+### Read Injected State Document
+
+The state.md and tasks.md content below is injected from the change set:
 
 !`cat changes/$1/state.md 2>/dev/null || echo "State file not found"`
 
@@ -31,17 +38,6 @@ Report:
 - Status notes (from `## Notes`)
 - Task progress if in plan/implement phase (e.g., [x] 2, [o] 1, [ ] 5)
 - Next suggested action
-
-### All Change Sets
-
-If "all" or no arguments:
-
-1. Find all `changes/*/state.md`
-2. For each, report summary:
-    - Name
-    - Phase and status
-    - Lane
-    - Brief status (including task completion ratio if in tasks/plan/implement phase)
 
 ### Output Format
 
