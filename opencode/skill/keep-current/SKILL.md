@@ -5,7 +5,7 @@ description: Research current online documentation and information. Use when wor
 
 # Keep Current
 
-Ensure responses are accurate and up-to-date by delegating research to the @general subagent.
+Ensure responses are accurate and up-to-date by doing targeted research (use helper agents when available) before answering.
 
 ## When to Research
 
@@ -29,9 +29,9 @@ Skip research for:
 
 **Rule of thumb**: If it's core programming knowledge that hasn't changed in years, don't research it.
 
-## Delegating to @general
+## Research Assistance
 
-When research is needed, delegate to the @general subagent:
+When research is needed, use available research assistance (for example, a general-purpose research agent) to gather up-to-date information:
 
 ### Provide Context
 
@@ -53,7 +53,7 @@ The subagent must:
 ### Example Prompt
 
 ```
-@general I need to integrate WorkOS for authentication in a Next.js app. 
+I need to integrate WorkOS for authentication in a Next.js app.
 Research the current WorkOS documentation to understand:
 - Integration setup and configuration
 - SDK usage and code examples

@@ -27,14 +27,14 @@ The `librarian` agent is the universal research agent. It:
 - Returns structured, comprehensive findings
 - Determines when research is complete
 
-**Never search the codebase directly** when doing SDD work. Always delegate to librarian.
+When doing SDD work, prefer using the `librarian` agent for codebase research so you follow existing patterns and avoid missed context.
 
 ## How to Consult Librarian
 
-Use the Task tool with `librarian` agent:
+Consult the `librarian` agent with a clear research prompt (the runtime will route this appropriately):
 
 ```
-Task(subagent_type: "librarian", prompt: "<your research question>")
+<your research question>
 ```
 
 ### Good Research Prompts

@@ -22,7 +22,7 @@ The `@librarian` agent is the universal research agent. It:
 - Returns structured, comprehensive findings
 - Determines when research is complete
 
-**Never search the codebase directly** when doing SDD work. Always delegate to @librarian.
+When doing SDD work, prefer using @librarian for codebase research so you follow existing patterns and avoid missed context.
 
 ## How to Consult Librarian
 
