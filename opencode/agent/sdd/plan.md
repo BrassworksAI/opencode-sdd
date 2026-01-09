@@ -4,6 +4,7 @@ description: SDD planning and artifact authoring - specs, proposals, tasks, and 
 color: "#BFB8AD"
 model: "github-copilot/gpt-5.2"
 permission:
+  question: allow
   edit:
     "*": deny
     "changes/*.md": allow

@@ -5,6 +5,7 @@ mode: all
 model: opencode/glm-4.7-free
 color: "#BEA2C2"
 permission:
+  question: allow
   edit:
     # Source files - deny
     "*.ts": deny

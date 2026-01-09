@@ -4,6 +4,7 @@ description: SDD implementation - execute plans and modify repo code
 color: "#DE7C5A"
 model: "github-copilot/gpt-5.2"
 permission:
+  question: allow
   edit:
     "*": allow
     "package.json": ask
