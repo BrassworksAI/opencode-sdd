@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "chat",
+  "agent": {
+    "sdd/plan": {
+      "disable": true,
+    },
+    "sdd/build": {
+      "disable": true,
+    },
+  },
+}

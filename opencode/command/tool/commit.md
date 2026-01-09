@@ -1,6 +1,5 @@
 ---
 description: Smart commits with semantic grouping and conventional commit format
-agent: sdd/build
 ---
 
 # Smart Commit
