@@ -1,38 +1,35 @@
-# Agent Extensions Installer (Windows PowerShell)
-# Downloads and installs the Spec-Driven Development process for OpenCode and/or Augment
+# Agent Extensions Install (Windows PowerShell)
+# Creates symlinks to the local repo's folders
+# This allows you to edit files and push changes back to the repo
 
 $ErrorActionPreference = "Stop"
-
-$RepoOwner = "BrassworksAI"
-$RepoName = "agent-extensions"
-$Branch = "main"
-$ArchiveUrl = "https://github.com/$RepoOwner/$RepoName/archive/refs/heads/$Branch.zip"
 
 function Write-Info { param($Message) Write-Host "[INFO] $Message" -ForegroundColor Blue }
 function Write-Success { param($Message) Write-Host "[OK] $Message" -ForegroundColor Green }
 function Write-Warn { param($Message) Write-Host "[WARN] $Message" -ForegroundColor Yellow }
 function Write-Err { param($Message) Write-Host "[ERROR] $Message" -ForegroundColor Red; exit 1 }
 
-# Find git root by walking up directories (no git required)
+function Confirm-YesNo {
+    param([string]$Prompt)
+    $answer = Read-Host "$Prompt [y/N]"
+    return $answer -match "^[Yy]"
+}
+
 function Find-GitRoot {
-    $dir = Get-Location
-    while ($dir -ne $null -and $dir.Path -ne "") {
-        $gitDir = Join-Path $dir.Path ".git"
-        if (Test-Path $gitDir) {
-            return $dir.Path
-        }
-        $parent = Split-Path $dir.Path -Parent
-        if ($parent -eq $dir.Path) { break }
-        $dir = Get-Item $parent -ErrorAction SilentlyContinue
+    $dir = (Get-Location).Path
+    while ($true) {
+        if (Test-Path (Join-Path $dir ".git")) { return $dir }
+        $parent = Split-Path $dir -Parent
+        if ($parent -eq $dir) { break }
+        $dir = $parent
     }
     return $null
 }
 
-# Install files from payload to target
-function Install-Files {
+function Install-Symlinks {
     param(
-        [string]$PayloadDir,
         [string]$TargetRoot,
+        [string]$PayloadDir,
         [string]$Label
     )
 
@@ -43,62 +40,74 @@ function Install-Files {
 
     Write-Info "Installing $Label to: $TargetRoot"
 
-    # Build file list and detect conflicts
-    $Conflicts = @()
+    $files = Get-ChildItem -Path $PayloadDir -Recurse -File | ForEach-Object {
+        $_.FullName.Substring($PayloadDir.Length + 1)
+    }
 
-    $Files = Get-ChildItem -Path $PayloadDir -Recurse -File
-    foreach ($file in $Files) {
-        $relativePath = $file.FullName.Substring($PayloadDir.Length + 1)
-        $destPath = Join-Path $TargetRoot $relativePath
-        if (Test-Path $destPath) {
-            $Conflicts += $relativePath
+    $conflicts = @()
+    foreach ($file in $files) {
+        $dest = Join-Path $TargetRoot $file
+        if (Test-Path $dest) {
+            if ((Get-Item $dest -ErrorAction SilentlyContinue).LinkType) {
+                $existingTarget = (Get-Item $dest).Target
+                $src = Join-Path $PayloadDir $file
+                if ($existingTarget -eq $src) { continue }
+            }
+            $conflicts += $file
         }
     }
 
-    # Handle conflicts
-    if ($Conflicts.Count -gt 0) {
+    if ($conflicts.Count -gt 0) {
         Write-Host ""
-        Write-Warn "Found $($Conflicts.Count) conflicting file(s) for ${Label}:"
+        Write-Warn "Found $($conflicts.Count) conflicting file(s)/symlink(s) for $Label:"
         Write-Host ""
-        $Conflicts | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" }
-        if ($Conflicts.Count -gt 20) {
-            Write-Host "  ... and $($Conflicts.Count - 20) more"
+        $conflicts | Select-Object -First 20 | ForEach-Object { Write-Host $_ }
+        if ($conflicts.Count -gt 20) {
+            Write-Host "  ... and $($conflicts.Count - 20) more"
         }
         Write-Host ""
-        $confirm = Read-Host "Overwrite conflicting files for ${Label}? [y/N]"
-        if ($confirm -notmatch "^[Yy]") {
+        Write-Warn "These will be replaced with symlinks to the repo."
+        Write-Host ""
+        if (-not (Confirm-YesNo "Replace ALL conflicting files with symlinks for $Label?")) {
             Write-Warn "Skipping $Label install"
             return $false
         }
         Write-Host ""
     }
 
-    # Copy files
-    foreach ($file in $Files) {
-        $relativePath = $file.FullName.Substring($PayloadDir.Length + 1)
-        $destPath = Join-Path $TargetRoot $relativePath
-        $destDir = Split-Path $destPath -Parent
+    Write-Info "Creating symlinks for $Label..."
 
-        # Create parent directories if needed
+    foreach ($file in $files) {
+        $src = Join-Path $PayloadDir $file
+        $dest = Join-Path $TargetRoot $file
+        $destDir = Split-Path $dest -Parent
+
         if (-not (Test-Path $destDir)) {
             New-Item -ItemType Directory -Path $destDir -Force | Out-Null
         }
 
-        Copy-Item -Path $file.FullName -Destination $destPath -Force
+        if (Test-Path $dest) {
+            Remove-Item $dest -Force
+        }
+
+        New-Item -ItemType SymbolicLink -Path $dest -Target $src | Out-Null
     }
 
-    Write-Success "Installed $Label to: $TargetRoot"
+    Write-Success "Symlinks created for $Label at: $TargetRoot"
     return $true
 }
 
-# Main
 function Main {
     Write-Host ""
-    Write-Host "  Agent Extensions Installer"
-    Write-Host "  ==========================="
+    Write-Host "  Agent Extensions Install (Symlink Mode)"
+    Write-Host "  ========================================"
     Write-Host ""
 
-    # Choose tool
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+    Write-Info "Source directory: $scriptDir"
+    Write-Host ""
+
     Write-Host "Which tool(s) would you like to install extensions for?"
     Write-Host "  1) OpenCode"
     Write-Host "  2) Augment (Auggie)"
@@ -116,103 +125,78 @@ function Main {
         default { Write-Err "Invalid choice. Please enter 1, 2, or 3." }
     }
 
-    # Choose install mode
     Write-Host ""
-    Write-Host "Where would you like to install?"
+    Write-Host "Where would you like to install symlinks?"
     Write-Host "  1) Global (user config directory)"
     Write-Host "  2) Local (current repo)"
+    Write-Host "  3) Both global and local"
     Write-Host ""
-    $scopeChoice = Read-Host "Enter choice [1/2]"
+    $scopeChoice = Read-Host "Enter choice [1/2/3]"
 
-    $InstallMode = ""
-    $GitRoot = ""
+    $InstallGlobal = $false
+    $InstallLocal = $false
 
     switch ($scopeChoice) {
-        "1" { $InstallMode = "global" }
-        "2" {
-            $InstallMode = "local"
-            $GitRoot = Find-GitRoot
-            if (-not $GitRoot) {
-                Write-Err "Not inside a git repository. Cannot determine repo root for local install."
-            }
-        }
-        default { Write-Err "Invalid choice. Please enter 1 or 2." }
+        "1" { $InstallGlobal = $true }
+        "2" { $InstallLocal = $true }
+        "3" { $InstallGlobal = $true; $InstallLocal = $true }
+        default { Write-Err "Invalid choice. Please enter 1, 2, or 3." }
     }
 
-    # Set target directories based on choices
-    if ($InstallMode -eq "global") {
-        $OpenCodeTarget = Join-Path $HOME ".config/opencode"
-        $AugmentTarget = Join-Path $HOME ".augment"
-    } else {
-        $OpenCodeTarget = Join-Path $GitRoot ".opencode"
-        $AugmentTarget = Join-Path $GitRoot ".augment"
+    if ($InstallLocal) {
+        $gitRoot = Find-GitRoot
+        if (-not $gitRoot) { Write-Err "Not inside a git repository. Cannot determine repo root for local install." }
     }
 
     Write-Host ""
-    Write-Info "Install mode: $InstallMode"
-    if ($InstallOpenCode) { Write-Info "OpenCode target: $OpenCodeTarget" }
-    if ($InstallAugment) { Write-Info "Augment target: $AugmentTarget" }
-    Write-Host ""
 
-    # Create temp directory
-    $TmpDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
-    New-Item -ItemType Directory -Path $TmpDir -Force | Out-Null
+    $installedCount = 0
 
-    try {
-        Write-Info "Downloading archive..."
-
-        $ZipPath = Join-Path $TmpDir "repo.zip"
-        Invoke-WebRequest -Uri $ArchiveUrl -OutFile $ZipPath -UseBasicParsing
-
-        Write-Info "Extracting archive..."
-        Expand-Archive -Path $ZipPath -DestinationPath $TmpDir -Force
-
-        # Find extracted directory (GitHub names it <repo>-<branch>)
-        $ExtractedDir = Join-Path $TmpDir "$RepoName-$Branch"
-
-        Write-Success "Downloaded and extracted"
-        Write-Host ""
-
-        $InstalledCount = 0
-
-        # Install OpenCode if requested
-        if ($InstallOpenCode) {
-            $OpenCodePayload = Join-Path $ExtractedDir "opencode"
-            if (Install-Files -PayloadDir $OpenCodePayload -TargetRoot $OpenCodeTarget -Label "OpenCode") {
-                $InstalledCount++
-            }
-            Write-Host ""
-        }
-
-        # Install Augment if requested
-        if ($InstallAugment) {
-            $AugmentPayload = Join-Path $ExtractedDir "augment"
-            if (Install-Files -PayloadDir $AugmentPayload -TargetRoot $AugmentTarget -Label "Augment") {
-                $InstalledCount++
-            }
-            Write-Host ""
-        }
-
-        if ($InstalledCount -eq 0) {
-            Write-Err "No installations completed"
-        }
-
-        Write-Success "Installation complete!"
-        Write-Host ""
-
-        if ($InstallMode -eq "global") {
-            Write-Host "SDD commands are now available globally."
-        } else {
-            Write-Host "SDD commands are now available for this repository."
+    if ($InstallOpenCode -and $InstallGlobal) {
+        $opencodePayload = Join-Path $scriptDir "opencode"
+        $opencodeTarget = Join-Path $HOME ".config\opencode"
+        if (Install-Symlinks -TargetRoot $opencodeTarget -PayloadDir $opencodePayload -Label "OpenCode (global)") {
+            $installedCount++
         }
         Write-Host ""
-
-    } finally {
-        # Cleanup
-        if (Test-Path $TmpDir) {
-            Remove-Item -Path $TmpDir -Recurse -Force -ErrorAction SilentlyContinue
-        }
     }
+
+    if ($InstallOpenCode -and $InstallLocal) {
+        $opencodePayload = Join-Path $scriptDir "opencode"
+        $opencodeTarget = Join-Path $gitRoot ".opencode"
+        if (Install-Symlinks -TargetRoot $opencodeTarget -PayloadDir $opencodePayload -Label "OpenCode (local)") {
+            $installedCount++
+        }
+        Write-Host ""
+    }
+
+    if ($InstallAugment -and $InstallGlobal) {
+        $augmentPayload = Join-Path $scriptDir "augment"
+        $augmentTarget = Join-Path $HOME ".augment"
+        if (Install-Symlinks -TargetRoot $augmentTarget -PayloadDir $augmentPayload -Label "Augment (global)") {
+            $installedCount++
+        }
+        Write-Host ""
+    }
+
+    if ($InstallAugment -and $InstallLocal) {
+        $augmentPayload = Join-Path $scriptDir "augment"
+        $augmentTarget = Join-Path $gitRoot ".augment"
+        if (Install-Symlinks -TargetRoot $augmentTarget -PayloadDir $augmentPayload -Label "Augment (local)") {
+            $installedCount++
+        }
+        Write-Host ""
+    }
+
+    if ($installedCount -eq 0) { Write-Err "No installations completed" }
+
+    Write-Success "Install complete! (Symlink mode)"
+    Write-Host ""
+    Write-Info "Source files at: $scriptDir"
+    Write-Host ""
+    Write-Host "Any edits you make to the symlinked files will modify the repo files."
+    Write-Host "You can commit and push changes directly."
+    Write-Host ""
 }
 
 Main
