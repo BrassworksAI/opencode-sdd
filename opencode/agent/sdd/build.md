@@ -3,7 +3,6 @@ name: sdd/build
 description: SDD implementation - execute plans and modify repo code
 color: "#DE7C5A"
 permission:
-  "*": allow
   edit:
     "*": allow
     "package.json": ask

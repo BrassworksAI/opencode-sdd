@@ -3,7 +3,6 @@ name: sdd/plan
 description: SDD planning and artifact authoring - specs, proposals, tasks, and plans
 color: "#BFB8AD"
 permission:
-  "*": allow
   edit:
     "*": deny
     "changes/*.md": allow
