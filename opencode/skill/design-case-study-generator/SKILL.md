@@ -56,6 +56,39 @@ After pitching:
 
 All outputs go under `design-system/runs/`.
 
+### Revisions (copy-forward)
+
+If the user is **editing an existing direction** (a revision/iteration), use a **copy-forward version**.
+
+Treat the request as a revision when the user:
+- References the current run/version (e.g. “in v3…”, “the last demo…”, “keep everything but…”)
+- Asks for adjustments/tweaks/iterations (e.g. “revise”, “iterate”, “tweak”, “make X bigger”, “change the header”, “swap the accent color”)
+- Implies continuity (e.g. “same vibe, but…”, “don’t change the structure, just…”)
+
+Treat the request as a new run (no copy-forward) when the user:
+- Picks a different pitch option / asks for a different vibe direction
+- Changes the scope entirely (different page/flow/component)
+- Changes the series slug
+- Requests a “hard reset” / “start over” / “from scratch”
+
+If it’s ambiguous, ask a 1-line clarifier:
+
+> “Is this a revision of the previous version (copy-forward), or a new direction (fresh run)?”
+
+When doing a revision:
+
+1. Identify the most recent version `vN` for the current series slug.
+2. Create `v(N+1)` by copying the entire folder from `vN`.
+3. Apply edits *in-place* in `v(N+1)` so we retain a full history.
+
+Use this helper command (Bun required):
+
+```bash
+bun run opencode/skill/design-case-study-generator/scripts/copy-version.ts -- --slug <series-slug> --from vN
+```
+
+It prints the created directory path (e.g. `design-system/runs/<slug>/v3`).
+
 ### Series slug
 
 - Propose a **semantic series slug** (kebab-case) based on what’s being generated.
@@ -71,6 +104,7 @@ All outputs go under `design-system/runs/`.
 
 - Under the series slug, create the next available version directory: `v1`, `v2`, ...
 - Never overwrite an existing version.
+- If this is a **revision** of the previous version, prefer **copy-forward** (see “Revisions (copy-forward)”).
 
 ## Modes: Exploratory vs consolidation
 
