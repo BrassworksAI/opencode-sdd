@@ -2,6 +2,7 @@
 name: sdd/build
 description: SDD implementation - execute plans and modify repo code
 color: "#DE7C5A"
+agent: "github-copilot/gpt-5.2"
 permission:
   edit:
     "*": allow
