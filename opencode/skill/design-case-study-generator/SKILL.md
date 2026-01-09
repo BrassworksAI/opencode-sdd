@@ -12,10 +12,9 @@ Each run:
 1. Ask for a scope (greenfield app / feature / page / flow / component) and a minimal set of constraints.
 2. Present **3 vibe-first pitch cards**.
 3. User chooses **exactly 1** option.
-4. Generate a **versioned run** that includes:
-   - A concise case study narrative
-   - A vanilla HTML/CSS/JS demo with a small debug panel
-   - W3C-style token snapshots (light + dark)
+4. Generate a **versioned run**.
+   - Exploratory default: **demo-first** (vanilla HTML/CSS/JS + debug panel). Minimal extra files.
+   - If approved, optionally **codify** the direction (tokens + decisions + case study) for reuse.
 
 This skill optimizes for ideation speed and repeatable artifacts ("Figma replacement" via runnable docs).
 
@@ -23,7 +22,7 @@ This skill optimizes for ideation speed and repeatable artifacts ("Figma replace
 
 - Vanilla only: **no build tools**, no bundlers, no frameworks.
 - Always pitch 3 options; **generate artifacts for only the chosen option**.
-- Default mode is **Exploratory**: write per-run snapshots; do not update any canonical token files unless the user explicitly asks.
+- Default mode is **Exploratory**: generate **demo-only by default**; do not update any canonical token files unless the user explicitly asks.
 - “Deterministic output” means: within a single run, emit files from the chosen option in a predictable format/order. It does **not** mean preserving decisions across versions.
 
 ## Inputs (ask these up front)
@@ -37,6 +36,7 @@ Ask the user for:
 5. **Constraints**: accessibility bar, performance, any “no-go” patterns
 6. **Vibe axis**: 2–4 adjectives (e.g., bold/edgy, airy/light, quiet/luxury)
 7. **Reference links** (optional): competitors, inspirations, existing brand
+8. **Behavior**: visual-only (default) vs interaction/motion
 
 If the user is greenfield and has no answers, propose reasonable defaults and confirm.
 
@@ -91,20 +91,38 @@ Only when the user explicitly asks to stabilize the system:
 - Propose updates to canonical files under `design-system/tokens/`.
 - Treat canonical changes as intentional and reviewable (summarize deltas and rationale).
 
-## Output contract (Exploratory default)
+## Output contract
+
+### Exploratory output (default: demo-only)
 
 Create exactly this structure:
 
 - `design-system/runs/<series-slug>/vN/`
-  - `case-study.md`
-  - `decisions.json`
-  - `tokens.snapshot.json`
-  - `theme.snapshot.json`
-  - `tokens.snapshot.css`
   - `demo/`
     - `index.html`
     - `styles.css`
-    - `app.js`
+    - `app.js` (required for the hideable debug shelf; also used for any interaction/motion)
+
+Notes:
+
+- In Exploratory mode, do **not** create case study files or token JSON snapshots by default.
+- Style tokens should be **embedded inline** in the demo (typically as a `<style>` block containing semantic CSS variables for light/dark).
+
+After generating the demo, ask:
+
+> “Do you want to approve this direction and codify it into tokens + decisions + a case study?”
+
+If the user says yes, proceed with “Codified output”.
+
+### Codified output (only when approved)
+
+When approved, add these files under the same `vN/`:
+
+- `decisions.json`
+- `tokens.snapshot.json`
+- `theme.snapshot.json`
+- `tokens.snapshot.css`
+- `case-study.md`
 
 ### Case study
 
@@ -117,7 +135,9 @@ Keep it concrete and tied to the demo:
 - What tokens/components are implied
 - What you would test/measure
 
-### Tokens
+### Tokens (only when codifying)
+
+Only generate token snapshot files after the user approves the direction.
 
 - Token snapshots are W3C-style (`$value`, `$type`, aliases).
 - `tokens.snapshot.json` contains primitives and any shared foundations.
@@ -130,13 +150,17 @@ Use `references/tokens-css-emitter.md` for stable, deterministic `tokens.snapsho
 ### Demo (vanilla)
 
 - `index.html` must run via double-click (file://) with no tooling.
-- The demo must include a small debug panel to toggle:
+- The demo must always include a **hideable debug shelf** (right-side drawer, hidden by default) to toggle:
   - theme: light/dark
   - key state(s) relevant to the scope (loading/error/empty/success, or component states)
+- JavaScript is optional.
+  - Always allowed: a tiny JS snippet to toggle the debug shelf open/closed.
+  - When interaction/motion is part of what’s being evaluated, write whatever vanilla JS is needed (animations, scroll effects, dynamic state, etc.) as long as it stays dependency-free and build-tool-free.
 
 Use `references/demo-skeleton.md` as the base structure for `index.html`, `styles.css`, and `app.js` so demos stay consistent **structurally** (not aesthetically) run-to-run.
 
-The demo must use only `tokens.snapshot.css` variables for styling.
+In Exploratory mode, tokens are embedded inline in the demo (no extra token files).
+When codified, the demo must import `../tokens.snapshot.css` and use semantic CSS vars from there.
 
 ## Interaction style
 
