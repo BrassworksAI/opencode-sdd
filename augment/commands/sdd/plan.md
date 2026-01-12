@@ -1,6 +1,6 @@
 ---
 description: Research, plan, and prepare for implementation
-argument-hint: <change-name> [task-number]
+argument-hint: <change-name>
 ---
 
 # Plan
