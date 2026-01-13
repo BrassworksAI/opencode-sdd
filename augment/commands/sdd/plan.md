@@ -1,6 +1,6 @@
 ---
 description: Research, plan, and prepare for implementation
-argument-hint: <change-name> [task-number]
+argument-hint: <change-name>
 ---
 
 # Plan
@@ -50,6 +50,16 @@ Read all change-set specs for context, recursively:
 
 Do not assume specs only exist at `changes/<name>/specs/*.md`.
 
+
+### Design References (Full Lane)
+
+Scan all loaded specs for design links (Figma, FigJam, screenshots, docs, etc.).
+
+- Extract and list all relevant design links for the current task.
+- If Figma/FigJam links are present and an MCP tool is available, use it to pull the design context (structure, key UI elements, states, flows).
+- Summarize how the designs affect the plan (components, layout, states, interactions, copy).
+- If links are missing or ambiguous, ask targeted questions before finalizing the plan.
+
 ### Research
 
 Delegate to `@librarian` to understand:
@@ -71,6 +81,15 @@ This command is a **dialogue**, not a one-way generation.
 3. **Ask Targeted Questions**: Clarify any unknowns that materially affect the plan (scope boundaries, rollout strategy, time/complexity constraints).
 4. **Invite Feedback**: Ask the user if they want any changes to structure, granularity, or sequencing.
 5. **Iterate**: Only write the plan file once the user indicates the direction looks right.
+
+### Plan Output Requirements
+
+The plan must be **unambiguous** so `/sdd:implement` can execute it mechanically.
+
+- **Every step must be executable**: include exact file paths, relevant symbols (functions/classes), and the concrete change to make.
+- **Prose-only is allowed** for simple/obvious edits (rename, move, delete, minor config change) where ambiguity is low.
+- **For larger code considerations**, include at least **pseudocode**, and use **actual code** when it materially reduces ambiguity (new logic, complex branching, or non-trivial data flow).
+- If there are **multiple valid approaches**, pick one and justify it; do not leave choices unresolved in the plan file.
 
 ### Create Plan
 
@@ -135,6 +154,16 @@ Don't advance until the user clearly signals approval. Questions, feedback, or a
 
 For vibe/bug lanes, combine discovery + tasking + planning into one pass. Get to building fast.
 
+
+### Design References (Vibe/Bug Lane)
+
+Scan context/specs for design links (Figma, FigJam, screenshots, docs, etc.).
+
+- Extract and list relevant design links.
+- If Figma/FigJam links are present and an MCP tool is available, use it to pull the design context.
+- Summarize how the designs affect the plan (UI structure, states, flows).
+- If links are missing or ambiguous, ask targeted questions.
+
 ### Research
 
 Delegate to `@librarian` to understand:
@@ -152,6 +181,14 @@ This command is a **dialogue**, not a one-way generation.
 3. **Ask Targeted Questions**: Clarify any unknowns that materially affect the plan.
 4. **Invite Feedback**: Ask the user if they want to adjust scope or sequencing.
 5. **Iterate**: Only write the plan file once the user indicates the direction looks right.
+
+### Plan Output Requirements
+
+The plan should stay lean, but still be **unambiguous** enough to execute without interpretation.
+
+- **Prose-only is allowed** for small, obvious changes.
+- **For larger code considerations**, include at least **pseudocode**, and use **actual code** when it materially reduces ambiguity.
+- Include exact file paths and concrete changes for each step.
 
 ### Create Combined Plan
 
@@ -220,4 +257,5 @@ A good plan:
 - Has specific file paths (verified to exist)
 - Follows patterns found in the codebase
 - Includes validation steps
+- Is unambiguous enough to execute without interpretation (use pseudocode/code for complex changes)
 - Is appropriately detailed for the lane

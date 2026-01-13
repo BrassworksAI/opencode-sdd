@@ -30,6 +30,15 @@ Apply state entry check logic from `.augment/skills/sdd-state-management.md`.
 
 For full lane, plan file is source of truth for what to do; `tasks.md` is bookkeeping (current task + completion).
 
+### Design References
+
+If the plan references designs or specs include design links:
+
+- Open the relevant design links (Figma/FigJam/etc.).
+- If an MCP tool is available (e.g., Figma), use it to pull the design context (structure, key UI elements, states, flows).
+- Verify implementation details against the design (layout, component structure, states, copy, interactions).
+- If there is a mismatch or missing detail, pause and ask targeted questions before proceeding.
+
 ### Implementation Process
 
 Execute plan step by step:
