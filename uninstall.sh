@@ -99,30 +99,31 @@ remove_opencode_files() {
     command/create/agent.md
     command/create/command.md
     plugin/spec-validate.ts
-    skill/spec-format/SKILL.md
-    skill/sdd-state-management/SKILL.md
-    skill/research/SKILL.md
     skill/architecture-fit-check/SKILL.md
     skill/architecture-workshop/SKILL.md
     skill/bun-shell-commands/SKILL.md
     skill/design-case-study-generator/SKILL.md
-    skill/design-case-study-generator/references/pitch-card-template.md
-    skill/design-case-study-generator/references/demo-skeleton.md
-    skill/design-case-study-generator/references/tokens-css-emitter.md
-    skill/design-case-study-generator/references/token-schema-guidance.md
     skill/design-case-study-generator/references/case-study-template.md
+    skill/design-case-study-generator/references/demo-skeleton.md
+    skill/design-case-study-generator/references/pitch-card-template.md
+    skill/design-case-study-generator/references/token-schema-guidance.md
+    skill/design-case-study-generator/references/tokens-css-emitter.md
     skill/design-case-study-generator/scripts/copy-version.ts
     skill/keep-current/SKILL.md
     skill/merge-change-specs/SKILL.md
     skill/merge-change-specs/references/delta-merge-rules.md
     skill/merge-change-specs/scripts/merge-change-specs.ts
-    skill/opencode-skill-creator/SKILL.md
-    skill/opencode-skill-creator/references/bun-script-rules.md
-    skill/opencode-skill-creator/references/skill-template.md
-    skill/opencode-skill-creator/references/script-workflows.md
-    skill/opencode-skill-creator/references/bun-runtime.md
-    skill/opencode-skill-creator/references/script-output-patterns.md
-    skill/opencode-skill-creator/references/opencode-skill-rules.md
+    skill/research/SKILL.md
+    skill/sdd-state-management/SKILL.md
+    skill/skill-creator/SKILL.md
+    skill/skill-creator/references/bun-runtime.md
+    skill/skill-creator/references/bun-script-rules.md
+    skill/skill-creator/references/script-output-patterns.md
+    skill/skill-creator/references/script-workflows.md
+    skill/skill-creator/references/skill-rules.md
+    skill/skill-creator/references/skill-template.md
+    skill/spec-format/SKILL.md
+    skill/spec-format/scripts/validate-change-spec.ts
   "
 
   for file in $files; do
@@ -139,8 +140,9 @@ remove_opencode_files() {
     skill/merge-change-specs/references
     skill/merge-change-specs/scripts
     skill/merge-change-specs
-    skill/opencode-skill-creator/references
-    skill/opencode-skill-creator
+    skill/skill-creator/references
+    skill/skill-creator
+    skill/spec-format/scripts
     skill/spec-format
     skill/sdd-state-management
     skill/research
@@ -259,13 +261,7 @@ remove_codex_files() {
     prompts/tool-commit.md
     skills/architecture-fit-check/SKILL.md
     skills/architecture-workshop/SKILL.md
-    skills/codex-skill-creator/SKILL.md
-    skills/codex-skill-creator/references/bun-runtime.md
-    skills/codex-skill-creator/references/bun-script-rules.md
-    skills/codex-skill-creator/references/codex-skill-rules.md
-    skills/codex-skill-creator/references/script-output-patterns.md
-    skills/codex-skill-creator/references/script-workflows.md
-    skills/codex-skill-creator/references/skill-template.md
+    skills/bun-shell-commands/SKILL.md
     skills/design-case-study-generator/SKILL.md
     skills/design-case-study-generator/references/case-study-template.md
     skills/design-case-study-generator/references/demo-skeleton.md
@@ -276,11 +272,18 @@ remove_codex_files() {
     skills/keep-current/SKILL.md
     skills/merge-change-specs/SKILL.md
     skills/merge-change-specs/references/delta-merge-rules.md
-    skills/merge-change-specs/scripts/merge-change-specs.mjs
+    skills/merge-change-specs/scripts/merge-change-specs.ts
     skills/research/SKILL.md
     skills/sdd-state-management/SKILL.md
-    skills/spec-format/scripts/validate-change-spec.mjs
+    skills/skill-creator/SKILL.md
+    skills/skill-creator/references/bun-runtime.md
+    skills/skill-creator/references/bun-script-rules.md
+    skills/skill-creator/references/script-output-patterns.md
+    skills/skill-creator/references/script-workflows.md
+    skills/skill-creator/references/skill-rules.md
+    skills/skill-creator/references/skill-template.md
     skills/spec-format/SKILL.md
+    skills/spec-format/scripts/validate-change-spec.ts
   "
 
   for file in $files; do
@@ -294,17 +297,18 @@ remove_codex_files() {
     skills/design-case-study-generator/references
     skills/design-case-study-generator/scripts
     skills/design-case-study-generator
-    skills/codex-skill-creator/references
-    skills/codex-skill-creator
     skills/merge-change-specs/references
     skills/merge-change-specs/scripts
     skills/merge-change-specs
+    skills/skill-creator/references
+    skills/skill-creator
     skills/spec-format/scripts
     skills/spec-format
     skills/sdd-state-management
     skills/research
     skills/architecture-fit-check
     skills/architecture-workshop
+    skills/bun-shell-commands
     skills/keep-current
     skills
     prompts

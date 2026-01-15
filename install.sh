@@ -35,6 +35,185 @@ confirm() {
   esac
 }
 
+# Get template variables for a given tool and mode
+# Sets: SKILL_INSTALL_PATH, SKILL_LOCAL_PATH, SKILL_GLOBAL_PATH
+set_template_vars() {
+  TOOL="$1"
+  MODE="$2"
+
+  case "$TOOL:$MODE" in
+    opencode:global)
+      SKILL_INSTALL_PATH='$HOME/.config/opencode/skill'
+      SKILL_LOCAL_PATH='.opencode/skill'
+      SKILL_GLOBAL_PATH='~/.config/opencode/skill'
+      ;;
+    opencode:local)
+      SKILL_INSTALL_PATH='./.opencode/skill'
+      SKILL_LOCAL_PATH='.opencode/skill'
+      SKILL_GLOBAL_PATH='~/.config/opencode/skill'
+      ;;
+    codex:global)
+      SKILL_INSTALL_PATH='$HOME/.codex/skills'
+      SKILL_LOCAL_PATH='.codex/skills'
+      SKILL_GLOBAL_PATH='~/.codex/skills'
+      ;;
+    codex:local)
+      SKILL_INSTALL_PATH='./.codex/skills'
+      SKILL_LOCAL_PATH='.codex/skills'
+      SKILL_GLOBAL_PATH='~/.codex/skills'
+      ;;
+    *)
+      error "Unknown tool/mode combination: $TOOL:$MODE"
+      ;;
+  esac
+}
+
+# Render a single .tmpl.md file to a destination
+# Arguments: $1 = source file, $2 = destination file
+render_template() {
+  SRC_FILE="$1"
+  DEST_FILE="$2"
+
+  DEST_DIR="$(dirname "$DEST_FILE")"
+  if [ ! -d "$DEST_DIR" ]; then
+    mkdir -p "$DEST_DIR"
+  fi
+
+  sed -e "s|{{{SKILL_INSTALL_PATH}}}|$SKILL_INSTALL_PATH|g" \
+      -e "s|{{{SKILL_LOCAL_PATH}}}|$SKILL_LOCAL_PATH|g" \
+      -e "s|{{{SKILL_GLOBAL_PATH}}}|$SKILL_GLOBAL_PATH|g" \
+      "$SRC_FILE" > "$DEST_FILE"
+}
+
+# Install skills with template-aware symlink/copy strategy
+# Arguments: $1 = target dir, $2 = skills source dir, $3 = cache dir, $4 = tool, $5 = mode, $6 = label, $7 = "symlink" or "copy"
+install_skills() {
+  TARGET_DIR="$1"
+  SKILLS_SRC="$2"
+  CACHE_DIR="$3"
+  TOOL="$4"
+  MODE="$5"
+  LABEL="$6"
+  INSTALL_TYPE="$7"
+
+  if [ ! -d "$SKILLS_SRC" ]; then
+    warn "Skills directory '$SKILLS_SRC' not found, skipping $LABEL"
+    return 1
+  fi
+
+  info "Installing $LABEL to: $TARGET_DIR"
+
+  # Set template variables for this tool/mode
+  set_template_vars "$TOOL" "$MODE"
+
+  # Clear and recreate cache directory for this tool
+  TOOL_CACHE="$CACHE_DIR/$TOOL"
+  rm -rf "$TOOL_CACHE"
+  mkdir -p "$TOOL_CACHE"
+
+  # Process each skill directory
+  for skill_dir in "$SKILLS_SRC"/*/; do
+    [ -d "$skill_dir" ] || continue
+    skill_name="$(basename "$skill_dir")"
+    skill_target="$TARGET_DIR/$skill_name"
+
+    # Check for conflict: both SKILL.md and SKILL.tmpl.md
+    if [ -f "$skill_dir/SKILL.md" ] && [ -f "$skill_dir/SKILL.tmpl.md" ]; then
+      error "Conflict: both SKILL.md and SKILL.tmpl.md exist in $skill_dir"
+    fi
+
+    # Determine if this skill uses templates
+    HAS_TEMPLATES=""
+    if [ -f "$skill_dir/SKILL.tmpl.md" ]; then
+      HAS_TEMPLATES="yes"
+    else
+      # Check for any .tmpl.md files in subdirectories
+      if find "$skill_dir" -name "*.tmpl.md" -type f 2>/dev/null | grep -q .; then
+        HAS_TEMPLATES="yes"
+      fi
+    fi
+
+    if [ -n "$HAS_TEMPLATES" ]; then
+      # Skill has templates - render to cache, then symlink/copy from cache
+      skill_cache="$TOOL_CACHE/$skill_name"
+      mkdir -p "$skill_cache"
+
+      # Process all files in the skill directory using find with -exec
+      find "$skill_dir" \( -name '.DS_Store' -o -name 'Thumbs.db' \) -prune -o -type f -print | while IFS= read -r src_file; do
+        # Get relative path from skill_dir
+        file="${src_file#$skill_dir}"
+        # Remove leading slash if present
+        file="${file#/}"
+        [ -z "$file" ] && continue
+
+        # Determine destination filename (strip .tmpl if present)
+        case "$file" in
+          *.tmpl.md)
+            dest_file_rel="${file%.tmpl.md}.md"
+            # Render template
+            render_template "$src_file" "$skill_cache/$dest_file_rel"
+            ;;
+          *)
+            # Non-template file - copy to cache as-is
+            dest_dir="$(dirname "$skill_cache/$file")"
+            [ -d "$dest_dir" ] || mkdir -p "$dest_dir"
+            cp -p "$src_file" "$skill_cache/$file"
+            ;;
+        esac
+      done
+
+      # Now symlink/copy from cache to target
+      mkdir -p "$skill_target"
+      find "$skill_cache" \( -name '.DS_Store' -o -name 'Thumbs.db' \) -prune -o -type f -print | while IFS= read -r cache_file; do
+        # Get relative path from skill_cache
+        file="${cache_file#$skill_cache}"
+        file="${file#/}"
+        [ -z "$file" ] && continue
+
+        target_file="$skill_target/$file"
+        target_file_dir="$(dirname "$target_file")"
+
+        [ -d "$target_file_dir" ] || mkdir -p "$target_file_dir"
+
+        # Remove existing
+        [ -e "$target_file" ] || [ -L "$target_file" ] && rm -f "$target_file"
+
+        if [ "$INSTALL_TYPE" = "symlink" ]; then
+          ln -s "$cache_file" "$target_file"
+        else
+          cp -p "$cache_file" "$target_file"
+        fi
+      done
+    else
+      # No templates - symlink/copy directly from source
+      mkdir -p "$skill_target"
+      find "$skill_dir" \( -name '.DS_Store' -o -name 'Thumbs.db' \) -prune -o -type f -print | while IFS= read -r src_file; do
+        # Get relative path from skill_dir
+        file="${src_file#$skill_dir}"
+        file="${file#/}"
+        [ -z "$file" ] && continue
+
+        target_file="$skill_target/$file"
+        target_file_dir="$(dirname "$target_file")"
+
+        [ -d "$target_file_dir" ] || mkdir -p "$target_file_dir"
+
+        # Remove existing
+        [ -e "$target_file" ] || [ -L "$target_file" ] && rm -f "$target_file"
+
+        if [ "$INSTALL_TYPE" = "symlink" ]; then
+          ln -s "$src_file" "$target_file"
+        else
+          cp -p "$src_file" "$target_file"
+        fi
+      done
+    fi
+  done
+
+  success "Skills installed for $LABEL at: $TARGET_DIR"
+  return 0
+}
+
 # Find git root by walking up directories (no git required)
 find_git_root() {
   dir="$PWD"
@@ -305,6 +484,13 @@ main() {
     if install_symlinks "$OPENCODE_TARGET" "$OPENCODE_PAYLOAD" "OpenCode (global)"; then
       INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     fi
+
+    OPENCODE_SKILLS_SRC="$SCRIPT_DIR/skills"
+    OPENCODE_SKILLS_TARGET="$OPENCODE_TARGET/skill"
+    OPENCODE_CACHE="$SCRIPT_DIR/.cache/skills-rendered"
+    if install_skills "$OPENCODE_SKILLS_TARGET" "$OPENCODE_SKILLS_SRC" "$OPENCODE_CACHE" "opencode" "global" "OpenCode skills (global)" "symlink"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
     echo ""
   fi
 
@@ -313,6 +499,13 @@ main() {
     OPENCODE_PAYLOAD="$SCRIPT_DIR/opencode"
     OPENCODE_TARGET="$GIT_ROOT/.opencode"
     if install_copies "$OPENCODE_TARGET" "$OPENCODE_PAYLOAD" "OpenCode (local)"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
+
+    OPENCODE_SKILLS_SRC="$SCRIPT_DIR/skills"
+    OPENCODE_SKILLS_TARGET="$OPENCODE_TARGET/skill"
+    OPENCODE_CACHE="$SCRIPT_DIR/.cache/skills-rendered"
+    if install_skills "$OPENCODE_SKILLS_TARGET" "$OPENCODE_SKILLS_SRC" "$OPENCODE_CACHE" "opencode" "local" "OpenCode skills (local)" "copy"; then
       INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     fi
     echo ""
@@ -345,6 +538,13 @@ main() {
     if install_symlinks "$CODEX_TARGET" "$CODEX_PAYLOAD" "Codex (global)"; then
       INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     fi
+
+    CODEX_SKILLS_SRC="$SCRIPT_DIR/skills"
+    CODEX_SKILLS_TARGET="$CODEX_TARGET/skills"
+    CODEX_CACHE="$SCRIPT_DIR/.cache/skills-rendered"
+    if install_skills "$CODEX_SKILLS_TARGET" "$CODEX_SKILLS_SRC" "$CODEX_CACHE" "codex" "global" "Codex skills (global)" "symlink"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
     echo ""
   fi
 
@@ -353,6 +553,13 @@ main() {
     CODEX_PAYLOAD="$SCRIPT_DIR/codex"
     CODEX_TARGET="$GIT_ROOT/.codex"
     if install_copies "$CODEX_TARGET" "$CODEX_PAYLOAD" "Codex (local)"; then
+      INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+    fi
+
+    CODEX_SKILLS_SRC="$SCRIPT_DIR/skills"
+    CODEX_SKILLS_TARGET="$CODEX_TARGET/skills"
+    CODEX_CACHE="$SCRIPT_DIR/.cache/skills-rendered"
+    if install_skills "$CODEX_SKILLS_TARGET" "$CODEX_SKILLS_SRC" "$CODEX_CACHE" "codex" "local" "Codex skills (local)" "copy"; then
       INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     fi
     echo ""

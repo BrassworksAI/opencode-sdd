@@ -61,7 +61,30 @@ async function getPayload(tool: ToolName): Promise<Set<string>> {
     })
     .filter((p) => !p.endsWith("/.DS_Store") && !p.endsWith(".DS_Store"));
 
-  return new Set(rel);
+  const payload = new Set(rel);
+
+  if (tool === "opencode" || tool === "codex") {
+    const skillsRoot = join(REPO_ROOT, "skills");
+    const skillsFiles = await listFilesRecursive(skillsRoot);
+    const skillsRel = skillsFiles
+      .map((abs) => {
+        const normalized = toPosixPath(abs);
+        const relative = normalized.startsWith(toPosixPath(skillsRoot) + "/")
+          ? normalized.slice(toPosixPath(skillsRoot).length + 1)
+          : normalized;
+        return relative;
+      })
+      .filter((p) => !p.endsWith("/.DS_Store") && !p.endsWith(".DS_Store"))
+      // Convert .tmpl.md to .md since that's what gets installed
+      .map((p) => p.replace(/\.tmpl\.md$/, ".md"));
+
+    const prefix = tool === "opencode" ? "skill/" : "skills/";
+    for (const file of skillsRel) {
+      payload.add(`${prefix}${file}`);
+    }
+  }
+
+  return payload;
 }
 
 function headerForTool(tool: ToolName): string {

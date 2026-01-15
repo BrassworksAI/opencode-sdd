@@ -26,6 +26,209 @@ function Find-GitRoot {
     return $null
 }
 
+# Template variable storage
+$script:TemplateVars = @{}
+
+function Set-TemplateVars {
+    param(
+        [string]$Tool,
+        [string]$Mode
+    )
+
+    $script:TemplateVars = @{}
+
+    switch ("$Tool`:$Mode") {
+        "opencode:global" {
+            $script:TemplateVars["SKILL_INSTALL_PATH"] = '$HOME/.config/opencode/skill'
+            $script:TemplateVars["SKILL_LOCAL_PATH"] = '.opencode/skill'
+            $script:TemplateVars["SKILL_GLOBAL_PATH"] = '~/.config/opencode/skill'
+        }
+        "opencode:local" {
+            $script:TemplateVars["SKILL_INSTALL_PATH"] = './.opencode/skill'
+            $script:TemplateVars["SKILL_LOCAL_PATH"] = '.opencode/skill'
+            $script:TemplateVars["SKILL_GLOBAL_PATH"] = '~/.config/opencode/skill'
+        }
+        "codex:global" {
+            $script:TemplateVars["SKILL_INSTALL_PATH"] = '$HOME/.codex/skills'
+            $script:TemplateVars["SKILL_LOCAL_PATH"] = '.codex/skills'
+            $script:TemplateVars["SKILL_GLOBAL_PATH"] = '~/.codex/skills'
+        }
+        "codex:local" {
+            $script:TemplateVars["SKILL_INSTALL_PATH"] = './.codex/skills'
+            $script:TemplateVars["SKILL_LOCAL_PATH"] = '.codex/skills'
+            $script:TemplateVars["SKILL_GLOBAL_PATH"] = '~/.codex/skills'
+        }
+        default {
+            Write-Err "Unknown tool/mode combination: $Tool`:$Mode"
+        }
+    }
+}
+
+function Render-Template {
+    param(
+        [string]$SrcFile,
+        [string]$DestFile
+    )
+
+    $destDir = Split-Path $DestFile -Parent
+    if (-not (Test-Path $destDir)) {
+        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+    }
+
+    $content = Get-Content $SrcFile -Raw -Encoding UTF8
+    foreach ($key in $script:TemplateVars.Keys) {
+        $pattern = [regex]::Escape("{{{$key}}}")
+        $content = $content -replace $pattern, $script:TemplateVars[$key]
+    }
+    Set-Content -Path $DestFile -Value $content -NoNewline -Encoding UTF8
+}
+
+function Install-Skills {
+    param(
+        [string]$TargetDir,
+        [string]$SkillsSrc,
+        [string]$CacheDir,
+        [string]$Tool,
+        [string]$Mode,
+        [string]$Label,
+        [string]$InstallType  # "symlink" or "copy"
+    )
+
+    if (-not (Test-Path $SkillsSrc)) {
+        Write-Warn "Skills directory '$SkillsSrc' not found, skipping $Label"
+        return $false
+    }
+
+    Write-Info "Installing $Label to: $TargetDir"
+
+    # Set template variables for this tool/mode
+    Set-TemplateVars -Tool $Tool -Mode $Mode
+
+    # Clear and recreate cache directory for this tool
+    $toolCache = Join-Path $CacheDir $Tool
+    if (Test-Path $toolCache) {
+        Remove-Item $toolCache -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $toolCache -Force | Out-Null
+
+    # Process each skill directory
+    $skillDirs = Get-ChildItem -Path $SkillsSrc -Directory
+    foreach ($skillDir in $skillDirs) {
+        $skillName = $skillDir.Name
+        $skillTarget = Join-Path $TargetDir $skillName
+        $skillSrcPath = $skillDir.FullName
+
+        # Check for conflict: both SKILL.md and SKILL.tmpl.md
+        $hasSkillMd = Test-Path (Join-Path $skillSrcPath "SKILL.md")
+        $hasSkillTmplMd = Test-Path (Join-Path $skillSrcPath "SKILL.tmpl.md")
+        if ($hasSkillMd -and $hasSkillTmplMd) {
+            Write-Err "Conflict: both SKILL.md and SKILL.tmpl.md exist in $skillSrcPath"
+        }
+
+        # Determine if this skill uses templates
+        $hasTemplates = $false
+        if ($hasSkillTmplMd) {
+            $hasTemplates = $true
+        } else {
+            # Check for any .tmpl.md files in subdirectories
+            $tmplFiles = Get-ChildItem -Path $skillSrcPath -Recurse -Filter "*.tmpl.md" -File
+            if ($tmplFiles.Count -gt 0) {
+                $hasTemplates = $true
+            }
+        }
+
+        if ($hasTemplates) {
+            # Skill has templates - render to cache, then symlink/copy from cache
+            $skillCache = Join-Path $toolCache $skillName
+            New-Item -ItemType Directory -Path $skillCache -Force | Out-Null
+
+            # Process all files in the skill directory
+            $files = Get-ChildItem -Path $skillSrcPath -Recurse -File |
+                Where-Object { $_.Name -notin @(".DS_Store", "Thumbs.db") }
+
+            foreach ($file in $files) {
+                $relativePath = $file.FullName.Substring($skillSrcPath.Length + 1)
+                $srcFile = $file.FullName
+
+                # Determine destination filename (strip .tmpl if present)
+                if ($relativePath -match "\.tmpl\.md$") {
+                    $destRelPath = $relativePath -replace "\.tmpl\.md$", ".md"
+                    $destFile = Join-Path $skillCache $destRelPath
+                    # Render template
+                    Render-Template -SrcFile $srcFile -DestFile $destFile
+                } else {
+                    # Non-template file - copy to cache as-is
+                    $destFile = Join-Path $skillCache $relativePath
+                    $destDir = Split-Path $destFile -Parent
+                    if (-not (Test-Path $destDir)) {
+                        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+                    }
+                    Copy-Item -Path $srcFile -Destination $destFile -Force
+                }
+            }
+
+            # Now symlink/copy from cache to target
+            if (-not (Test-Path $skillTarget)) {
+                New-Item -ItemType Directory -Path $skillTarget -Force | Out-Null
+            }
+
+            $cacheFiles = Get-ChildItem -Path $skillCache -Recurse -File
+            foreach ($file in $cacheFiles) {
+                $relativePath = $file.FullName.Substring($skillCache.Length + 1)
+                $cacheFile = $file.FullName
+                $targetFile = Join-Path $skillTarget $relativePath
+                $targetFileDir = Split-Path $targetFile -Parent
+
+                if (-not (Test-Path $targetFileDir)) {
+                    New-Item -ItemType Directory -Path $targetFileDir -Force | Out-Null
+                }
+
+                if (Test-Path $targetFile) {
+                    Remove-Item $targetFile -Force
+                }
+
+                if ($InstallType -eq "symlink") {
+                    New-Item -ItemType SymbolicLink -Path $targetFile -Target $cacheFile | Out-Null
+                } else {
+                    Copy-Item -Path $cacheFile -Destination $targetFile -Force
+                }
+            }
+        } else {
+            # No templates - symlink/copy directly from source
+            if (-not (Test-Path $skillTarget)) {
+                New-Item -ItemType Directory -Path $skillTarget -Force | Out-Null
+            }
+
+            $files = Get-ChildItem -Path $skillSrcPath -Recurse -File |
+                Where-Object { $_.Name -notin @(".DS_Store", "Thumbs.db") }
+
+            foreach ($file in $files) {
+                $relativePath = $file.FullName.Substring($skillSrcPath.Length + 1)
+                $srcFile = $file.FullName
+                $targetFile = Join-Path $skillTarget $relativePath
+                $targetFileDir = Split-Path $targetFile -Parent
+
+                if (-not (Test-Path $targetFileDir)) {
+                    New-Item -ItemType Directory -Path $targetFileDir -Force | Out-Null
+                }
+
+                if (Test-Path $targetFile) {
+                    Remove-Item $targetFile -Force
+                }
+
+                if ($InstallType -eq "symlink") {
+                    New-Item -ItemType SymbolicLink -Path $targetFile -Target $srcFile | Out-Null
+                } else {
+                    Copy-Item -Path $srcFile -Destination $targetFile -Force
+                }
+            }
+        }
+    }
+
+    Write-Success "Skills installed for $Label at: $TargetDir"
+    return $true
+}
+
 function Install-Symlinks {
     param(
         [string]$TargetRoot,
@@ -231,6 +434,13 @@ function Main {
         if (Install-Symlinks -TargetRoot $opencodeTarget -PayloadDir $opencodePayload -Label "OpenCode (global)") {
             $installedCount++
         }
+
+        $opencodeSkillsSrc = Join-Path $scriptDir "skills"
+        $opencodeSkillsTarget = Join-Path $opencodeTarget "skill"
+        $opencodeCache = Join-Path $scriptDir ".cache\skills-rendered"
+        if (Install-Skills -TargetDir $opencodeSkillsTarget -SkillsSrc $opencodeSkillsSrc -CacheDir $opencodeCache -Tool "opencode" -Mode "global" -Label "OpenCode skills (global)" -InstallType "symlink") {
+            $installedCount++
+        }
         Write-Host ""
     }
 
@@ -238,6 +448,13 @@ function Main {
         $opencodePayload = Join-Path $scriptDir "opencode"
         $opencodeTarget = Join-Path $gitRoot ".opencode"
         if (Install-Copies -TargetRoot $opencodeTarget -PayloadDir $opencodePayload -Label "OpenCode (local)") {
+            $installedCount++
+        }
+
+        $opencodeSkillsSrc = Join-Path $scriptDir "skills"
+        $opencodeSkillsTarget = Join-Path $opencodeTarget "skill"
+        $opencodeCache = Join-Path $scriptDir ".cache\skills-rendered"
+        if (Install-Skills -TargetDir $opencodeSkillsTarget -SkillsSrc $opencodeSkillsSrc -CacheDir $opencodeCache -Tool "opencode" -Mode "local" -Label "OpenCode skills (local)" -InstallType "copy") {
             $installedCount++
         }
         Write-Host ""
@@ -267,6 +484,13 @@ function Main {
         if (Install-Symlinks -TargetRoot $codexTarget -PayloadDir $codexPayload -Label "Codex (global)") {
             $installedCount++
         }
+
+        $codexSkillsSrc = Join-Path $scriptDir "skills"
+        $codexSkillsTarget = Join-Path $codexTarget "skills"
+        $codexCache = Join-Path $scriptDir ".cache\skills-rendered"
+        if (Install-Skills -TargetDir $codexSkillsTarget -SkillsSrc $codexSkillsSrc -CacheDir $codexCache -Tool "codex" -Mode "global" -Label "Codex skills (global)" -InstallType "symlink") {
+            $installedCount++
+        }
         Write-Host ""
     }
 
@@ -274,6 +498,13 @@ function Main {
         $codexPayload = Join-Path $scriptDir "codex"
         $codexTarget = Join-Path $gitRoot ".codex"
         if (Install-Copies -TargetRoot $codexTarget -PayloadDir $codexPayload -Label "Codex (local)") {
+            $installedCount++
+        }
+
+        $codexSkillsSrc = Join-Path $scriptDir "skills"
+        $codexSkillsTarget = Join-Path $codexTarget "skills"
+        $codexCache = Join-Path $scriptDir ".cache\skills-rendered"
+        if (Install-Skills -TargetDir $codexSkillsTarget -SkillsSrc $codexSkillsSrc -CacheDir $codexCache -Tool "codex" -Mode "local" -Label "Codex skills (local)" -InstallType "copy") {
             $installedCount++
         }
         Write-Host ""
