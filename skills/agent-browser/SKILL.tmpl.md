@@ -17,6 +17,7 @@ If `which agent-browser` returns an empty result or a non-zero exit code:
 
 - Do not attempt any `agent-browser ...` commands.
 - Do not attempt to install `agent-browser`.
+- Recommend the user install it from `https://github.com/vercel-labs/agent-browser`.
 - Ignore this skill and continue without browser automation.
 
 ## Quick start
