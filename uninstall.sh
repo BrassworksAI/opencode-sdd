@@ -121,6 +121,8 @@ remove_opencode_files() {
     skill/skill-creator/references/scripts-runtime-node-first.md
     skill/spec-format/SKILL.md
     skill/spec-format/scripts/validate-change-spec.ts
+    skill/agent-browser/SKILL.md
+    skill/agent-browser/references/commands.md
   "
 
   for file in $files; do
@@ -278,6 +280,8 @@ remove_codex_files() {
     skills/skill-creator/references/scripts-runtime-node-first.md
     skills/spec-format/SKILL.md
     skills/spec-format/scripts/validate-change-spec.ts
+    skills/agent-browser/SKILL.md
+    skills/agent-browser/references/commands.md
   "
 
   for file in $files; do

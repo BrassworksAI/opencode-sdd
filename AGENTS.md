@@ -8,6 +8,7 @@ Any time you add, rename, or remove any file under:
 - `opencode/`
 - `augment/`
 - `codex/`
+- `skills/` (these get installed into OpenCode/Codex payloads)
 
 You MUST:
 1. Evaluate both uninstall scripts (`uninstall.sh`, `uninstall.ps1`) to ensure they remove the exact payload files.

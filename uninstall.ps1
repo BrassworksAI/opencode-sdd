@@ -96,7 +96,9 @@ function Remove-OpenCodeFiles {
         "skill\skill-creator\references\scripts-overview.md",
         "skill\skill-creator\references\scripts-runtime-node-first.md",
         "skill\spec-format\SKILL.md",
-        "skill\spec-format\scripts\validate-change-spec.ts"
+        "skill\spec-format\scripts\validate-change-spec.ts",
+        "skill\agent-browser\SKILL.md",
+        "skill\agent-browser\references\commands.md"
     )
 
     foreach ($file in $files) {
@@ -116,8 +118,10 @@ function Remove-OpenCodeFiles {
         "skill\merge-change-specs",
         "skill\skill-creator\references",
         "skill\skill-creator",
-        "skill\spec-format\scripts",
-        "skill\spec-format",
+        "skill\agent-browser\references",
+        "skill\agent-browser",
+        "skill\\spec-format\\scripts",
+        "skill\\spec-format",
         "skill\sdd-state-management",
         "skill\research",
         "skill\architecture-fit-check",
@@ -255,7 +259,9 @@ function Remove-CodexFiles {
         "skills\skill-creator\references\scripts-overview.md",
         "skills\skill-creator\references\scripts-runtime-node-first.md",
         "skills\spec-format\SKILL.md",
-        "skills\spec-format\scripts\validate-change-spec.ts"
+        "skills\spec-format\scripts\validate-change-spec.ts",
+        "skills\agent-browser\SKILL.md",
+        "skills\agent-browser\references\commands.md"
     )
 
     foreach ($file in $files) {
@@ -275,8 +281,10 @@ function Remove-CodexFiles {
         "skills\merge-change-specs",
         "skills\skill-creator\references",
         "skills\skill-creator",
-        "skills\spec-format\scripts",
-        "skills\spec-format",
+        "skills\agent-browser\references",
+        "skills\agent-browser",
+        "skills\\spec-format\\scripts",
+        "skills\\spec-format",
         "skills\sdd-state-management",
         "skills\research",
         "skills\architecture-fit-check",
