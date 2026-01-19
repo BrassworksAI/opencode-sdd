@@ -75,6 +75,7 @@ function Remove-OpenCodeFiles {
         "command\create\agent.md",
         "command\create\command.md",
         "plugin\spec-validate.ts",
+        "plugin\markdownlint.ts",
         "skill\architecture-fit-check\SKILL.md",
         "skill\architecture-workshop\SKILL.md",
         "skill\bun-shell-commands\SKILL.md",
@@ -309,6 +310,7 @@ function Test-OpenCodeExists {
         (Test-Path "$Target\command\sdd") -or
         (Test-Path "$Target\agent\librarian.md") -or
         (Test-Path "$Target\plugin\spec-validate.ts") -or
+        (Test-Path "$Target\plugin\markdownlint.ts") -or
         (Test-Path "$Target\skill\merge-change-specs")
 }
 

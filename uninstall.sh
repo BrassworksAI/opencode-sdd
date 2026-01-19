@@ -99,6 +99,7 @@ remove_opencode_files() {
     command/create/agent.md
     command/create/command.md
     plugin/spec-validate.ts
+    plugin/markdownlint.ts
     skill/architecture-fit-check/SKILL.md
     skill/architecture-workshop/SKILL.md
     skill/bun-shell-commands/SKILL.md
@@ -326,6 +327,7 @@ check_opencode_exists() {
     [ -d "$target/command/sdd" ] || \
     [ -f "$target/agent/librarian.md" ] || \
     [ -f "$target/plugin/spec-validate.ts" ] || \
+    [ -f "$target/plugin/markdownlint.ts" ] || \
     [ -d "$target/skill/merge-change-specs" ]
 }
 

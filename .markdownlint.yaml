@@ -1,0 +1,17 @@
+# markdownlint configuration
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+default: true
+
+# MD013/line-length: AI output often exceeds fixed line limits; let readability win.
+MD013: false
+
+# Allow inline HTML and non-top-level first line headings (used for centered logo)
+MD033: false
+MD041: false
+
+# Tables: AI-generated tables frequently omit pipes or have uneven column counts.
+# Relax these rules to avoid spending time reformatting tables.
+MD055: false # table-pipe-style
+MD056: false # table-column-count
+MD060: false # table-column-style
