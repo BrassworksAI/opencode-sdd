@@ -13,7 +13,7 @@ Canonical specs (post-finish) may live in a domain taxonomy under `specs/` at th
 
 Change-set specs for a given change set live under `changes/<name>/specs/` and may be nested by domain/subdomain.
 
-```
+```text
 specs/
   <domain>/
     <subdomain>/
@@ -98,24 +98,34 @@ The spec describes *what the user intends to do*, not *how they physically do it
 
 ## EARS Syntax
 
-Requirements use EARS (Easy Approach to Requirements Syntax) patterns:
+Requirements use EARS (Easy Approach to Requirements Syntax) patterns. Clauses always appear in the same order: `WHILE <state>`, `WHEN <trigger>`, then `the system SHALL <response>`. Omit clauses you do not need.
 
 | Pattern | Template | Use When |
 |---------|----------|----------|
-| Ubiquitous | The system SHALL `<action>`. | Fundamental system properties, always true |
-| Event-driven | WHEN `<trigger>` the system SHALL `<action>`. | Response to a specific event |
-| State-driven | WHILE `<state>` the system SHALL `<action>`. | Behavior during a particular state |
-| Unwanted behavior | IF `<condition>` THEN the system SHALL `<action>`. | Handling errors, failures, edge cases |
-| Optional feature | WHERE `<feature>` is present the system SHALL `<action>`. | Behavior tied to optional features |
-| Complex | WHEN `<trigger>` IF `<condition>` THEN the system SHALL `<action>`. | Combining patterns |
+| Ubiquitous | The system SHALL `<action>`. | Always true, no specific trigger or state |
+| Event-driven | WHEN `<trigger>` the system SHALL `<action>`. | Response to a discrete event |
+| State-driven | WHILE `<state>` the system SHALL `<action>`. | Behavior that applies during a sustained state |
+| Unwanted behavior | IF `<condition>` THEN the system SHALL `<action>`. | Errors, failures, edge cases |
+| Optional feature | WHERE `<feature>` is present the system SHALL `<action>`. | Behavior tied to optional capabilities |
+| Complex | WHILE `<state>`, WHEN `<trigger>` the system SHALL `<action>`. | Both a state and a trigger are required |
+
+### Pattern selection guide
+
+- Start with the scope: if it is always true, use **Ubiquitous**.
+- If a sustained condition limits the behavior, use **State-driven**.
+- If a discrete event triggers the behavior, use **Event-driven**.
+- If both a state and a trigger apply, use **Complex** (WHILE + WHEN).
+- If you are describing error handling, use **Unwanted behavior** instead of nesting IF inside WHEN.
+- If behavior only applies when a feature is included, use **Optional feature**.
 
 ### Examples
 
 - The system SHALL validate all user input before processing.
-- WHEN the user clicks submit the system SHALL save the form data.
+- WHEN the user submits the form the system SHALL save the data.
 - WHILE in maintenance mode the system SHALL reject new connections.
 - IF the database connection fails THEN the system SHALL retry with exponential backoff.
 - WHERE two-factor auth is enabled the system SHALL require a verification code.
+- WHILE the user is authenticated, WHEN a session expires the system SHALL prompt for re-authentication.
 
 ## Change Set Specs (`changes/<name>/specs/`)
 
@@ -227,7 +237,7 @@ Requirements use RFC 2119 language:
 - **SHOULD NOT** - Discouraged but not prohibited
 - **MAY** - Optional
 
-Prefer SHALL for most requirements. Use SHOULD/MAY sparingly.
+Prefer SHALL for most requirements. Use SHOULD/MAY sparingly when behavior is recommended or optional. Do not use SHALL to avoid choosing the right EARS pattern.
 
 ## Writing Good Requirements
 
@@ -243,22 +253,25 @@ Prefer SHALL for most requirements. Use SHOULD/MAY sparingly.
 Tasks, plans, and reconciliation reference requirements by quoting the exact EARS line from the spec.
 
 Example in tasks.md:
+
 ```markdown
 **Requirements:**
-- "WHEN the user clicks submit the system SHALL save the form data."
+- "WHEN the user submits the form the system SHALL save the form data."
 - "IF validation fails THEN the system SHALL display error messages."
 ```
 
 ## Flat vs Grouped Delta Specs
 
 **Flat:** One delta file per modified capability (default)
-```
+
+```text
 changes/<name>/specs/auth/login.md
 changes/<name>/specs/auth/logout.md
 ```
 
 **Grouped:** Multiple related changes in one file (for tightly coupled changes)
-```
+
+```text
 changes/<name>/specs/auth/session-management.md  # covers login + logout + refresh
 ```
 
