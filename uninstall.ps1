@@ -180,10 +180,14 @@ function Remove-AugmentFiles {
         "commands\create\command.md",
         "skills\sdd-state-management.md",
         "skills\spec-format.md",
+        "skills\merge-change-specs.md",
         "skills\research.md",
         "skills\architecture-fit-check.md",
         "skills\architecture-workshop.md",
-        "skills\keep-current.md"
+        "skills\keep-current.md",
+        "merge-change-specs\scripts\merge-change-specs.ts",
+        "merge-change-specs\references\delta-merge-rules.md",
+        "spec-validate\spec-validate.ts"
     )
 
     foreach ($file in $files) {
@@ -195,6 +199,10 @@ function Remove-AugmentFiles {
 
     # Clean up empty directories (leaf to root)
     $dirs = @(
+        "merge-change-specs\references",
+        "merge-change-specs\scripts",
+        "merge-change-specs",
+        "spec-validate",
         "skills",
         "commands\tool",
         "commands\sdd\tools",

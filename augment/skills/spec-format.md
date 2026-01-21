@@ -114,6 +114,18 @@ kind: new | delta
 ---
 ```
 
+### Validation requirement
+
+After you `write` or `edit` any change-set spec under `changes/<name>/specs/**/*.md`, you MUST run the validator script against the exact file you changed.
+
+- Run: `bun .augment/spec-validate/spec-validate.ts <change-spec-path>`
+
+If validation fails:
+
+- You MUST fix the spec content.
+- You MUST re-run the validator.
+- Repeat until it prints `OK`.
+
 ### Optional frontmatter fields
 
 Change-set specs MAY include additional YAML frontmatter fields when helpful. This is intentionally extensible for future tooling.
