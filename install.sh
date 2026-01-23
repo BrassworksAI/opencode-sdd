@@ -116,6 +116,15 @@ install_skills() {
     [ -d "$skill_dir" ] || continue
     skill_name="$(basename "$skill_dir")"
     skill_target="$TARGET_DIR/$skill_name"
+    skill_override=""
+
+    if [ "$TOOL" = "codex" ]; then
+      if [ -f "$skill_dir/SKILL.codex.tmpl.md" ]; then
+        skill_override="SKILL.codex.tmpl.md"
+      elif [ -f "$skill_dir/SKILL.codex.md" ]; then
+        skill_override="SKILL.codex.md"
+      fi
+    fi
 
     # Check for conflict: both SKILL.md and SKILL.tmpl.md
     if [ -f "$skill_dir/SKILL.md" ] && [ -f "$skill_dir/SKILL.tmpl.md" ]; then
@@ -145,6 +154,26 @@ install_skills() {
         # Remove leading slash if present
         file="${file#/}"
         [ -z "$file" ] && continue
+
+        if [ -n "$skill_override" ]; then
+          case "$file" in
+            "SKILL.codex.tmpl.md")
+              dest_file_rel="SKILL.md"
+              render_template "$src_file" "$skill_cache/$dest_file_rel"
+              continue
+              ;;
+            "SKILL.codex.md")
+              dest_file_rel="SKILL.md"
+              dest_dir="$(dirname "$skill_cache/$dest_file_rel")"
+              [ -d "$dest_dir" ] || mkdir -p "$dest_dir"
+              cp -p "$src_file" "$skill_cache/$dest_file_rel"
+              continue
+              ;;
+            "SKILL.tmpl.md"|"SKILL.md")
+              continue
+              ;;
+          esac
+        fi
 
         # Determine destination filename (strip .tmpl if present)
         case "$file" in
@@ -192,6 +221,26 @@ install_skills() {
         file="${src_file#$skill_dir}"
         file="${file#/}"
         [ -z "$file" ] && continue
+
+        if [ -n "$skill_override" ]; then
+          case "$file" in
+            "SKILL.codex.md")
+              target_file="$skill_target/SKILL.md"
+              target_file_dir="$(dirname "$target_file")"
+              [ -d "$target_file_dir" ] || mkdir -p "$target_file_dir"
+              [ -e "$target_file" ] || [ -L "$target_file" ] && rm -f "$target_file"
+              if [ "$INSTALL_TYPE" = "symlink" ]; then
+                ln -s "$src_file" "$target_file"
+              else
+                cp -p "$src_file" "$target_file"
+              fi
+              continue
+              ;;
+            "SKILL.md")
+              continue
+              ;;
+          esac
+        fi
 
         target_file="$skill_target/$file"
         target_file_dir="$(dirname "$target_file")"

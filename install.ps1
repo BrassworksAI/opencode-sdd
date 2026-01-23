@@ -117,6 +117,17 @@ function Install-Skills {
         $skillName = $skillDir.Name
         $skillTarget = Join-Path $TargetDir $skillName
         $skillSrcPath = $skillDir.FullName
+        $skillOverride = $null
+
+        if ($Tool -eq "codex") {
+            $codexTmpl = Join-Path $skillSrcPath "SKILL.codex.tmpl.md"
+            $codexMd = Join-Path $skillSrcPath "SKILL.codex.md"
+            if (Test-Path $codexTmpl) {
+                $skillOverride = "SKILL.codex.tmpl.md"
+            } elseif (Test-Path $codexMd) {
+                $skillOverride = "SKILL.codex.md"
+            }
+        }
 
         # Check for conflict: both SKILL.md and SKILL.tmpl.md
         $hasSkillMd = Test-Path (Join-Path $skillSrcPath "SKILL.md")
@@ -149,6 +160,28 @@ function Install-Skills {
             foreach ($file in $files) {
                 $relativePath = $file.FullName.Substring($skillSrcPath.Length + 1)
                 $srcFile = $file.FullName
+
+                if ($skillOverride) {
+                    if ($relativePath -eq "SKILL.codex.tmpl.md") {
+                        $destRelPath = "SKILL.md"
+                        $destFile = Join-Path $skillCache $destRelPath
+                        Render-Template -SrcFile $srcFile -DestFile $destFile
+                        continue
+                    }
+                    if ($relativePath -eq "SKILL.codex.md") {
+                        $destRelPath = "SKILL.md"
+                        $destFile = Join-Path $skillCache $destRelPath
+                        $destDir = Split-Path $destFile -Parent
+                        if (-not (Test-Path $destDir)) {
+                            New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+                        }
+                        Copy-Item -Path $srcFile -Destination $destFile -Force
+                        continue
+                    }
+                    if ($relativePath -eq "SKILL.tmpl.md" -or $relativePath -eq "SKILL.md") {
+                        continue
+                    }
+                }
 
                 # Determine destination filename (strip .tmpl if present)
                 if ($relativePath -match "\.tmpl\.md$") {
@@ -207,6 +240,28 @@ function Install-Skills {
                 $srcFile = $file.FullName
                 $targetFile = Join-Path $skillTarget $relativePath
                 $targetFileDir = Split-Path $targetFile -Parent
+
+                if ($skillOverride) {
+                    if ($relativePath -eq "SKILL.codex.md") {
+                        $targetFile = Join-Path $skillTarget "SKILL.md"
+                        $targetFileDir = Split-Path $targetFile -Parent
+                        if (-not (Test-Path $targetFileDir)) {
+                            New-Item -ItemType Directory -Path $targetFileDir -Force | Out-Null
+                        }
+                        if (Test-Path $targetFile) {
+                            Remove-Item $targetFile -Force
+                        }
+                        if ($InstallType -eq "symlink") {
+                            New-Item -ItemType SymbolicLink -Path $targetFile -Target $srcFile | Out-Null
+                        } else {
+                            Copy-Item -Path $srcFile -Destination $targetFile -Force
+                        }
+                        continue
+                    }
+                    if ($relativePath -eq "SKILL.md") {
+                        continue
+                    }
+                }
 
                 if (-not (Test-Path $targetFileDir)) {
                     New-Item -ItemType Directory -Path $targetFileDir -Force | Out-Null
