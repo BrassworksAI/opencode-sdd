@@ -2,7 +2,6 @@
 name: sdd/plan
 description: SDD planning and artifact authoring - specs, proposals, tasks, and plans
 color: "#BFB8AD"
-model: "github-copilot/gpt-5.2"
 permission:
   question: allow
   edit:
