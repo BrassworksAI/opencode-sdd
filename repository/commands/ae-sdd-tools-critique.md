@@ -1,5 +1,4 @@
 ---
-name: sdd-tools-critique
 description: Critique proposal, specs, or plan for gaps and contradictions
 ---
 

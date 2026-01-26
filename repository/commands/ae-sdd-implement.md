@@ -1,5 +1,4 @@
 ---
-name: sdd-implement
 description: Execute the implementation plan
 ---
 

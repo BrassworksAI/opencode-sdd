@@ -1,5 +1,4 @@
 ---
-name: proposal
 description: Draft and refine a proposal document
 ---
 

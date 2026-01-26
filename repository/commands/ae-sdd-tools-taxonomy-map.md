@@ -1,5 +1,4 @@
 ---
-name: sdd-tools-taxonomy-map
 description: Map change intents to canonical spec paths and grouping
 ---
 

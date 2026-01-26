@@ -1,5 +1,4 @@
 ---
-name: init-change
 description: Initialize a new SDD change set
 ---
 

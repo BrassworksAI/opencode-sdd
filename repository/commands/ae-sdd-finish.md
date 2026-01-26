@@ -1,5 +1,4 @@
 ---
-name: sdd-finish
 description: Close the change set and sync specs
 ---
 

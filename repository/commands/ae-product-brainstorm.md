@@ -1,5 +1,4 @@
 ---
-name: brainstorm
 description: Explore problem space and develop seed document
 ---
 

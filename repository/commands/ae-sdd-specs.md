@@ -1,5 +1,4 @@
 ---
-name: sdd-specs
 description: Write change-set specifications for change
 ---
 

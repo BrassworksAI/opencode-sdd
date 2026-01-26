@@ -1,5 +1,4 @@
 ---
-name: sdd-tasks
 description: Create implementation tasks from specs (full lane)
 ---
 

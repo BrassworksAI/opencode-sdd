@@ -1,5 +1,4 @@
 ---
-name: sdd-plan
 description: Research, plan, and prepare for implementation
 ---
 

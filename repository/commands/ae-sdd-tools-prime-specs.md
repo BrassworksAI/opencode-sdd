@@ -1,5 +1,4 @@
 ---
-name: sdd-tools-prime-specs
 description: Prime LLM with all spec files for a change
 ---
 

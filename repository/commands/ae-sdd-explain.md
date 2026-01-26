@@ -1,5 +1,4 @@
 ---
-name: sdd-explain
 description: Explain SDD concepts and workflow
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: sdd-reconcile
 description: Ensure specs match implementation
 ---
 

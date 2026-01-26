@@ -1,5 +1,4 @@
 ---
-name: sdd-status
 description: Show status of injected change set
 ---
 

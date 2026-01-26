@@ -1,5 +1,4 @@
 ---
-name: sdd-discovery
 description: Discover high-level architectural requirements for change-set specs
 ---
 

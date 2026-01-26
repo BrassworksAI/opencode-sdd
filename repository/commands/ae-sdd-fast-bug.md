@@ -1,5 +1,4 @@
 ---
-name: sdd-fast-bug
 description: Bug investigation and fix - triage, research, plan, fix
 ---
 
