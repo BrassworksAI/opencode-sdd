@@ -9,7 +9,7 @@ Provide thoughtful critique of work in the current context for gaps, contradicti
 ## Inputs
 
 > [!IMPORTANT]
-> Ask the user what to focus on: `proposal`, `specs`, `plan`, `seed`, or a freeform description. Ask if unclear.
+> Assume you should critique the work you recently produced. If you have no context, ask the user what to focus on: `proposal`, `specs`, `plan`, `seed`, or a freeform description.
 
 ## Instructions
 

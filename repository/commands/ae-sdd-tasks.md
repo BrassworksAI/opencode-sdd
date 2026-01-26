@@ -9,15 +9,15 @@ Create implementation tasks for the change set. Full lane only—vibe/bug lanes 
 ## Inputs
 
 > [!IMPORTANT]
-> Ask the user for the change set name. Run `ls changes/ | grep -v archive/` to list options. If only one directory exists, use it. Otherwise, prompt the user.
+> Resolve the change set by running `ls changes/ | grep -v archive/`. If exactly one directory exists, use it. Only prompt the user when multiple change sets are present.
 
 ## Instructions
 
-Load `sdd-state-management` and `spec-format` skills. Read state, proposal, specs, and thoughts from the change set. If lane is `vibe` or `bug`, redirect to `/sdd/plan`.
+Load `sdd-state-management` skill. Read state, proposal, specs, and thoughts from the change set. If lane is `vibe` or `bug`, redirect to `/sdd/plan`.
 
 This is a dialogue. Before writing tasks.md, present your breakdown thinking: how you'll map spec requirements, why you're grouping them this way, and what task order maintains system stability. Ask for feedback on granularity and flow. Update state.md `## Notes` with decisions.
 
-Create `changes/<name>/tasks.md` with checkbox tracking: `[ ]` pending, `[o]` in progress, `[x]` complete. Each task includes description and requirements mapped to spec EARS lines. Order tasks: foundations first (models, types), vertical implementation slices, integration, validation. Every task must be completable in one session, independently testable, and leave the system in a committable state.
+Create `changes/<name>/tasks.md` with checkbox tracking: `[ ]` pending, `[o]` in progress, `[x]` complete. Each task includes description and requirements mapped to spec EARS lines. Order tasks: foundations first (models, types, codegen), vertical implementation slices, integration, validation. Every task must be completable in one session, independently testable, and leave the system in a committable state.
 
 ## Examples
 

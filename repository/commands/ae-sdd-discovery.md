@@ -16,9 +16,7 @@ Analyze high-level architectural requirements for implementing change-set specs 
 ## Inputs
 
 > [!IMPORTANT]
-> You must ask the user for the following information; do not assume CLI arguments are provided.
-
-- **Change Set Name**: Resolve it by running `ls -1 changes` (ignore `archive/`). If exactly one directory remains, proceed with it. If multiple exist, ask the user which change set to use.
+> Resolve the change set by running `ls changes/ | grep -v archive/`. If exactly one directory exists, use it. Only prompt the user when multiple change sets are present.
 
 ## Instructions
 

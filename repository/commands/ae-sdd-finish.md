@@ -16,9 +16,9 @@ Close the change set and sync specs to canonical.
 ## Inputs
 
 > [!IMPORTANT]
-> You must ask the user for the following information; do not assume CLI arguments are provided.
+> Resolve the change set by running `ls changes/ | grep -v archive/`. If exactly one directory exists, use it. Only prompt the user when multiple change sets are present.
 
-- **Change set name**: Resolve by running `ls -1 changes` ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise, ask the user which change set to use.
+- **Change set name**: Resolve by running `ls -1 changes` ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Only prompt the user when multiple change sets are present.
 
 ## Instructions
 

@@ -1,4 +1,4 @@
-import type { Plugin } from "@opencode-ai/plugin";
+#!/usr/bin/env node
 import { existsSync } from "node:fs";
 
 const MARKDOWN_EXTENSIONS = [".md", ".markdown", ".mdown", ".mkd", ".mkdn"];
@@ -16,12 +16,12 @@ const MARKDOWNLINT_CONFIG_FILES = [
   ".markdownlintrc.cjs",
 ];
 
-function isMarkdownFilePath(filePath: string): boolean {
+function isMarkdownFilePath(filePath) {
   const lower = filePath.toLowerCase();
   return MARKDOWN_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
-function findMarkdownlintConfig(worktree: string): string | null {
+function findMarkdownlintConfig(worktree) {
   const root = worktree.replace(/[\\/]+$/, "");
 
   for (const config of MARKDOWNLINT_CONFIG_FILES) {
@@ -32,10 +32,10 @@ function findMarkdownlintConfig(worktree: string): string | null {
   return null;
 }
 
-export const MarkdownlintPlugin: Plugin = async ({ $, worktree }) => {
+export const MarkdownlintPlugin = async ({ $, worktree }) => {
   const configPath = findMarkdownlintConfig(worktree);
 
-  async function validateFile(filePath: string) {
+  async function validateFile(filePath) {
     if (!isMarkdownFilePath(filePath)) return;
 
     const result = configPath

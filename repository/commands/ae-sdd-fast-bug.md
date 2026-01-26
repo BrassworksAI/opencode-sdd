@@ -12,10 +12,10 @@ description: Fast-track bug investigation and fix initialization
 ## Inputs
 
 > [!IMPORTANT]
-> You must ask the user for the following information; do not assume CLI arguments are provided.
+> Resolve required inputs from the workspace first; only ask the user when resolution is ambiguous or missing (for example, multiple change sets exist).
 
 - **Bug Context**: Ask for error messages, reproduction steps, or a description of what is failing.
-- **Change Set Name**: Ask the user to confirm or provide a name for the new change set (e.g., `fix-login-error`).
+- **Change Set Name**: Resolve by checking existing change sets. If only one exists, proceed with it; if multiple exist, ask whether this is new or related to an existing one. If none exist, ask the user to confirm or provide a name for the new change set (e.g., `fix-login-error`).
 
 ## Instructions
 

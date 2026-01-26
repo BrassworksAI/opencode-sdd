@@ -9,7 +9,7 @@ Show the status of an SDD change set.
 ## Inputs
 
 > [!IMPORTANT]
-> Ask the user for the change set name. Run `ls changes/ | grep -v archive/` to list options. If only one directory exists, use it. Otherwise, prompt the user.
+> Resolve the change set by running `ls changes/ | grep -v archive/`. If exactly one directory exists, use it. Only prompt the user when multiple change sets are present.
 
 ## Instructions
 

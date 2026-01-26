@@ -11,10 +11,10 @@ description: Collaborative vibe coding sessions that free you from spec ceremony
 ## Inputs
 
 > [!IMPORTANT]
-> You must ask the user for the following information; do not assume CLI arguments are provided.
+> Resolve required inputs from the workspace first; only ask the user when resolution is ambiguous or missing (for example, multiple change sets exist).
 
 - **Exploration Context**: Ask the user what they want to prototype, explore, or experiment with.
-- **Change Set Name**: Ask the user for a name to track this experiment (e.g., `vibe-new-ui-hook`).
+- **Change Set Name**: Resolve by checking existing change sets. If only one exists, proceed with it; if multiple exist, ask which to continue. If none exist, ask the user for a new name to track this experiment (e.g., `vibe-new-ui-hook`).
 
 ## Instructions
 

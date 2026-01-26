@@ -28,10 +28,10 @@ These scripts are actively used by commands in the repository and should be conv
    - Status: Needs conversion to .mjs
    - Complexity: Low (file validation)
 
-3. **repository/hooks/opencode/markdownlint.ts**
+3. **repository/hooks/opencode/markdownlint.mjs**
    - Purpose: Runs markdownlint on files
    - Used by: OpenCode hooks
-   - Status: Needs conversion to .mjs
+   - Status: Converted to .mjs
    - Complexity: Low (wrapper around markdownlint)
 
 ### Priority 2: Already Have .mjs Equivalents
