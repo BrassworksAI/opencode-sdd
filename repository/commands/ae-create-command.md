@@ -7,7 +7,7 @@ Before executing, read the Codex custom prompts docs: https://developers.openai.
 
 ## Task
 
-1. Ask the user for the custom prompt spec in plain English (if it wasn't provided).
+1. Ask the user for the custom prompt spec in plain English.
 2. Ask the user for the output path:
    - `(1) project` → `.codex/prompts/<name>.md`
    - `(2) global` → `~/.codex/prompts/<name>.md`

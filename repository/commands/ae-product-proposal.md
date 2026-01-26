@@ -1,39 +1,32 @@
 ---
-name: product-proposal
-description: Draft and refine change proposal (full lane)
+name: proposal
+description: Draft and refine a proposal document
 ---
 
-# Required Skills (Must Load)
+# Proposal
+
+Draft and refine a proposal document.
+
+## Required Skills (Must Load)
 
 You MUST load and follow these skills before doing anything else:
 
-- `sdd-state-management`
 - `research`
 
 If any required skill content is missing or not available in context, you MUST stop and ask the user to re-run the command or otherwise provide the missing skill content. Do NOT proceed without them.
 
-# Proposal
-
-Draft and refine the proposal document for a change set. This command is primarily for **full lane** work.
-
-> **Note**: Vibe lane uses `/sdd/fast/vibe` which creates a lightweight `context.md` instead of a formal proposal. Bug lane uses `/sdd/fast/bug` which handles triage and context creation.
-
 ## Inputs
 
-- Change set name (ask the user if missing)
+- Target location for `proposal.md`. Ask the user for a folder or file path. If they provide a folder, use `<target>/proposal.md`. If they provide a file path, use that file. If they provide nothing, default to `proposal.md` in the current working directory.
+- Seed location (optional). If the proposal path is `<dir>/proposal.md`, use `<dir>/seed.md` as `<seed-path>`. If that file doesn't exist, skip it.
 
 ## Instructions
 
 ### Setup
 
 Run:
-- `cat changes/<change-set-name>/state.md 2>/dev/null || echo "State file not found"`
-- `cat changes/<change-set-name>/seed.md 2>/dev/null || echo "No seed found"`
-- `cat changes/<change-set-name>/proposal.md 2>/dev/null || echo "No proposal found"`
-
-### Entry Check
-
-Apply state entry check logic from `sdd-state-management` skill.
+- `cat <seed-path> 2>/dev/null || echo "No seed found"`
+- `cat <proposal-path> 2>/dev/null || echo "No proposal found"`
 
 ### Research Phase (Recommended)
 
@@ -49,20 +42,6 @@ For non-trivial proposals, use the `research` skill:
    - Note integration points
    - Identify potential risks based on codebase structure
 
-### Lane Selection
-
-If lane not yet selected, determine with user:
-
-| Lane | When to Use |
-|------|-------------|
-| `full` | New capabilities, architectural changes, complex features |
-| `vibe` | Prototypes, experiments, quick enhancements (use `/sdd/fast/vibe` instead) |
-| `bug` | Fixing incorrect behavior (use `/sdd/fast/bug` instead) |
-
-For vibe or bug work, redirect user to the appropriate fast command.
-
-Update state.md `## Lane` with selected lane.
-
 ### Collaborative Refinement
 
 This is a dialogue, not a generation task. The user brings whatever definition they have—a half-formed idea, a detailed vision, a conversation summary—and you help them refine it into something complete enough for specs.
@@ -75,7 +54,7 @@ This is a dialogue, not a generation task. The user brings whatever definition t
 
 **Surface logic gaps.** When the described behavior has holes: "You mentioned auto-save, but what happens if the user is offline? Is that something we need to handle?" Ask if it should be considered, then let them answer.
 
-Update state.md `## Notes` with key decisions and progress during this phase.
+Capture key decisions and progress directly in the proposal as you go.
 
 ### Proposal Content
 
@@ -110,7 +89,7 @@ A proposal is ready for specs when you can answer "how does the system handle...
 
 ### Critique (Recommended)
 
-For full lane proposals, suggest the user run `/sdd/tools/critique` for analytical critique:
+If the user wants analytical critique, offer a focused review:
 
 - Identifies contradictions, gaps, and risks
 - Challenges unstated assumptions
@@ -120,7 +99,7 @@ Address any serious issues raised before proceeding.
 
 ### Scenario Testing (Recommended)
 
-After critique, suggest the user run `/sdd/tools/scenario-test` for user-perspective validation:
+If the user wants user-perspective validation, offer a scenario walk-through:
 
 - Tests proposal by inhabiting a realistic user persona
 - Identifies gaps, friction points, and ambiguities
@@ -132,7 +111,5 @@ Address blocking issues before proceeding; note friction points for consideratio
 
 When they explicitly approve the proposal:
 
-1. Update state.md: `## Phase Status: complete`, clear `## Notes`
-2. Suggest `/sdd/specs <name>` to write change-set specifications (`kind: new|delta`)
-
-Do not log completion in `## Pending` (that section is for unresolved blockers/decisions only).
+1. Save the finalized proposal to `<proposal-path>`
+2. Suggest drafting specs or a delivery plan next, depending on their process

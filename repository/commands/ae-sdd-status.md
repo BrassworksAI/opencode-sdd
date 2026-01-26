@@ -17,15 +17,13 @@ Show the status of an SDD change set.
 
 ## Inputs
 
-- Change set name (required; ask the user if missing)
+- Change set name. Resolve it by running `ls -1 changes` and ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise ask the user which change set to use.
 
 ## Instructions
 
 ### Check Inputs
 
-If the user has not provided a change set name:
-- Ask: "What change set would you like me to report on?"
-- Do not proceed with any other steps
+Resolve the change set name using the Inputs rule above. If multiple options remain, ask: "What change set would you like me to report on?" Do not proceed with any other steps until it is resolved.
 
 ### Read Injected State Document
 
@@ -63,8 +61,8 @@ Report:
 | Phase | Status | Next Action |
 |-------|--------|-------------|
 | `ideation` | `in_progress` | Continue brainstorming |
-| `ideation` | `complete` | `/sdd/proposal <name>` |
-| `proposal` | `in_progress` | Continue refining proposal |
+| `ideation` | `complete` | Draft proposal.md |
+| `proposal` | `in_progress` | Continue refining proposal.md |
 | `proposal` | `complete` | `/sdd/specs <name>` |
 | `specs` | `in_progress` | Continue writing specs |
 | `specs` | `complete` | `/sdd/discovery <name>` |

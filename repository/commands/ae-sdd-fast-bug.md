@@ -18,13 +18,13 @@ Investigate and fix a bug. This command triages the issue, researches the codeba
 
 ## Inputs
 
-- Bug context (what's wrong, error messages, reproduction steps, etc.). Ask the user if missing.
+- Bug context (what's wrong, error messages, reproduction steps, etc.). Ask the user for it.
 
 ## Instructions
 
 ### Gather Context
 
-If no context provided, ask user:
+Ask the user:
 - What's happening?
 - What did you expect to happen?
 - Any error messages?
@@ -48,7 +48,7 @@ Before investigating, determine what type of issue this is:
 > This looks like a behavioral change rather than a bug. The current behavior may be working as specified.
 >
 > I recommend using the full SDD lane to properly spec out the new behavior:
-> - `/sdd/init <name>` → `/sdd/proposal` → `/sdd/specs`
+> - `/sdd/init <name>` → draft `proposal.md` → `/sdd/specs`
 >
 > This ensures the change is captured in specs before implementation.
 

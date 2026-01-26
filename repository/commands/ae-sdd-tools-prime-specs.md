@@ -5,7 +5,9 @@ description: Prime LLM with all spec files for a change
 
 # Spec Context for Change: <change-set-name>
 
-If the change set name is not provided, ask the user for it before proceeding.
+## Inputs
+
+- Change set name. Resolve it by running `ls -1 changes` and ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise ask the user which change set to use.
 
 The following spec files are loaded for planning context:
 

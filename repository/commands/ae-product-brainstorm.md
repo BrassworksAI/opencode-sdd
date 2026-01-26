@@ -1,36 +1,31 @@
 ---
-name: product-brainstorm
+name: brainstorm
 description: Explore problem space and develop seed document
 ---
-
-# Required Skills (Must Load)
-
-You MUST load and follow these skills before doing anything else:
-
-- `sdd-state-management`
-- `research`
-
-If any required skill content is missing or not available in context, you MUST stop and ask the user to re-run the command or otherwise provide the missing skill content. Do NOT proceed without them.
 
 # Brainstorm / Ideation
 
 Explore the problem space collaboratively to develop a seed document.
 
+## Required Skills (Must Load)
+
+You MUST load and follow these skills before doing anything else:
+
+- `research`
+
+If any required skill content is missing or not available in context, you MUST stop and ask the user to re-run the command or otherwise provide the missing skill content. Do NOT proceed without them.
+
 ## Inputs
 
-- Change set name (ask the user if missing)
+- Target location for `seed.md`. Ask the user for a folder or file path. If they provide a folder, use `<target>/seed.md`. If they provide a file path, use that file. If they provide nothing, default to `seed.md` in the current working directory.
 
 ## Instructions
 
 ### Setup
 
 Run:
-- `cat changes/<change-set-name>/state.md 2>/dev/null || echo "State file not found"`
-- `cat changes/<change-set-name>/seed.md 2>/dev/null || echo "No seed found"`
 
-### Entry Check
-
-Apply state entry check logic from `sdd-state-management` skill.
+- `cat <seed-path> 2>/dev/null || echo "No seed found"`
 
 ### Research Phase (As Needed)
 
@@ -90,19 +85,11 @@ What could derail this.
 
 ### Critique
 
-When the seed feels complete, suggest the user run `/sdd/tools/critique seed`:
-
-- Identifies contradictions and missing cases
-- Flags risks that aren't acknowledged
-- Validates the seed is ready to become a proposal
-
-If critique identifies serious issues, work with user to address them.
+If the user wants critique, offer to review for contradictions, missing cases, and unaddressed risks. Address any serious issues before moving on.
 
 ### Completion
 
 When seed is solid and user explicitly approves:
 
-1. Update state.md: `## Phase Status: complete`, clear `## Notes`
-2. Suggest running `/sdd/proposal <name>`
-
-Do not log completion in `## Pending` (that section is for unresolved blockers/decisions only).
+1. Save the finalized seed to `<seed-path>`
+2. Suggest drafting a proposal next (optionally via `/product/proposal`)

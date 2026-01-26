@@ -19,7 +19,7 @@ Write change-set specifications for the change set (`kind: new` and `kind: delta
 
 ## Inputs
 
-- Change set name (ask the user if missing)
+- Change set name. Resolve it by running `ls -1 changes` and ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise ask the user which change set to use.
 
 ## Instructions
 

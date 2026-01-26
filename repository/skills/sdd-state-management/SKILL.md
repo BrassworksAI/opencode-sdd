@@ -39,7 +39,7 @@ in_progress | complete
 
 | Lane | Purpose | Flow |
 |------|---------|------|
-| **Full** | Enterprise features, architectural changes | Proposal → Specs → Discovery → Tasks → Plan → Implement → Reconcile → Finish |
+| **Full** | Enterprise features, architectural changes | Proposal (external doc) → Specs → Discovery → Tasks → Plan → Implement → Reconcile → Finish |
 | **Vibe** | Rapid prototypes, exploration | Context → Plan → Implement → [Reconcile → Finish] |
 | **Bug** | Fix defects | Triage + Research → Plan → Implement → [Reconcile → Finish] |
 
@@ -52,6 +52,8 @@ The complete SDD experience. Specs are written before implementation.
 ```
 ideation -> proposal -> specs -> discovery -> tasks -> plan -> implement -> reconcile -> finish
 ```
+
+Seed and proposal artifacts can be authored outside SDD. The state file just tracks the phase and SDD reads `seed.md`/`proposal.md` when present.
 
 | Phase | Purpose | Artifacts |
 |-------|---------|-----------|

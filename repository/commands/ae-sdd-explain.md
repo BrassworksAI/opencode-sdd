@@ -54,7 +54,7 @@ Everything in SDD revolves around a **change set** - a named collection of files
 changes/
   add-user-auth/           # Change set directory
     state.md               # Lane, phase, phase status, notes, pending
-    proposal.md            # What we're building and why
+    proposal.md            # What we're building and why (authored outside SDD, read when present)
     specs/                 # Change-set specs (full lane only; `kind: new|delta`)
       api.md
       components.md
@@ -81,6 +81,8 @@ The key insight: **Full lane** writes specs before implementation. **Vibe/Bug la
 init -> proposal -> specs -> discovery -> tasks -> plan -> implement -> reconcile -> finish
 ```
 
+Ideation and proposal artifacts are often created outside SDD. SDD simply tracks the phase and reads `seed.md`/`proposal.md` if they exist.
+
 **Vibe Lane** (freedom to explore):
 ```
 /sdd/fast/vibe <context> -> plan -> implement -> [reconcile -> finish]
@@ -100,8 +102,6 @@ Vibe/Bug lanes have optional completion - if throwing away the work, stop after 
 | `/sdd/init <name>` | Start a new change set (full lane) |
 | `/sdd/fast/vibe <context>` | Start vibe lane - exploration mode |
 | `/sdd/fast/bug <context>` | Start bug lane - fix with triage |
-| `/sdd/brainstorm` | Explore problem space before proposing |
-| `/sdd/proposal` | Draft/refine the proposal (full lane) |
 | `/sdd/specs` | Write change-set specifications (full lane) |
 | `/sdd/discovery` | Verify specs fit repo architecture |
 | `/sdd/tasks` | Generate implementation tasks (full lane) |
@@ -160,9 +160,8 @@ User: /sdd/finish
 
 ```
 User: /sdd/init add-plugin-system
-User: /sdd/proposal
+User: (Drafts proposal.md using preferred method)
       "Add a plugin architecture to allow extending functionality"
-      [Forge helps draft proposal.md, sets lane: full]
 
 User: /sdd/specs
       [Forge writes change-set specs defining interfaces, behaviors]

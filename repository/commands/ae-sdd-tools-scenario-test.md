@@ -17,7 +17,7 @@ Test a proposal or design by inhabiting a realistic user persona and attempting 
 
 ## Inputs
 
-- Change set name (optional, for context). Ask the user if you need it.
+- Change set name (optional, for context). If you want that context, resolve it by running `ls -1 changes` and ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise ask the user which change set to use.
 
 ## Role
 

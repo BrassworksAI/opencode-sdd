@@ -19,13 +19,13 @@ Skip the spec ceremony - get to building fast.
 
 ## Inputs
 
-- What you want to build/try (freeform context). Ask the user if missing.
+- What you want to build/try (freeform context). Ask the user for it.
 
 ## Instructions
 
 ### Gather Context
 
-If no context provided, ask user what they want to explore:
+Ask the user what they want to explore:
 - What are you trying to build or prototype?
 - What are you curious about?
 

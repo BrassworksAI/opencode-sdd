@@ -24,7 +24,7 @@ Research the codebase and create an implementation plan.
 
 ## Inputs
 
-- Change set name (ask the user if missing; for full lane, plans the next incomplete task)
+- Change set name. Resolve it by running `ls -1 changes` and ignoring `archive/`. If exactly one directory remains, use it as `<change-set-name>`. Otherwise ask the user which change set to use. For full lane, plans the next incomplete task.
 
 ## Instructions
 

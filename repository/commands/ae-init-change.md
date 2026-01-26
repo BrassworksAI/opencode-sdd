@@ -3,7 +3,11 @@ name: init-change
 description: Initialize a new SDD change set
 ---
 
-# Required Skills (Must Load)
+# Initialize Change Set
+
+Create a new SDD change set with the given name.
+
+## Required Skills (Must Load)
 
 You MUST load and follow these skills before doing anything else:
 
@@ -11,25 +15,24 @@ You MUST load and follow these skills before doing anything else:
 
 If any required skill content is missing or not available in context, you MUST stop and ask the user to re-run the command or otherwise provide the missing skill content. Do NOT proceed without them.
 
-# Initialize Change Set
-
-Create a new SDD change set with the given name.
-
 ## Inputs
 
-- Change set name (kebab-case); ask the user if missing
+- Change set name (kebab-case). Ask the user for it.
 
 ## Instructions
 
 1. **Validate name**: Ensure name is kebab-case, no spaces, lowercase
 2. **Check for conflicts**: Verify `changes/<name>/` doesn't already exist
 3. **Create structure**:
-   ```
+
+   ```text
    changes/<name>/
      state.md
      proposal.md
    ```
+
 4. **Initialize state.md**:
+
    ```markdown
    # SDD State: <name>
 
@@ -51,7 +54,9 @@ Create a new SDD change set with the given name.
 
    ## Notes
    ```
+
 5. **Initialize proposal.md** with empty template:
+
    ```markdown
     # Proposal: <name>
 
@@ -71,4 +76,5 @@ Create a new SDD change set with the given name.
 
     (High-level approach - freeform)
     ```
-6. **Report**: Confirm creation and suggest next step (`/sdd/brainstorm` or `/sdd/proposal`)
+
+6. **Report**: Confirm creation and suggest next step (start brainstorming or draft `proposal.md`, optionally via `/product/brainstorm` or `/product/proposal`)
