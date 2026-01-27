@@ -35,7 +35,7 @@ Use the Agent Skills model already present in `.agent/skills/`:
 
 Proposed skill:
 
-```
+```text
 .agent/skills/agent-readiness/
   SKILL.md
   scripts/
@@ -83,7 +83,7 @@ This allows new checks without editing code and makes the results explainable.
 
 Standardize output fields:
 
-```
+```text
 id
 level
 title
@@ -859,7 +859,7 @@ Each check should be defined with explicit signals, evaluation rules, skip logic
 
 Example usage:
 
-```
+```text
 /agent-readiness
 ```
 
