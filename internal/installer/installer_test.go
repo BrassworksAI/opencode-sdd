@@ -192,9 +192,9 @@ func verifyInstallation(t *testing.T, reg *registry.Registry, inst *Installer, t
 				verifySymlink(t, fullPath, "SKILL.md")
 				verifySymlinkContent(t, fullPath, "# Skill")
 			} else {
-				// Directory-based skill - check the directory symlink
+				// Directory-based skill - check the directory contains symlinked files
 				skillDir := filepath.Dir(fullPath)
-				verifySymlinkIsDir(t, skillDir)
+				verifyDirWithSymlinkedFiles(t, skillDir)
 			}
 		}
 	}
@@ -264,6 +264,40 @@ func verifySymlinkIsDir(t *testing.T, path string) {
 
 	if !targetInfo.IsDir() {
 		t.Errorf("%s does not resolve to a directory", path)
+	}
+}
+
+func verifyDirWithSymlinkedFiles(t *testing.T, path string) {
+	t.Helper()
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Errorf("directory not found at %s: %v", path, err)
+		return
+	}
+
+	if !info.IsDir() {
+		t.Errorf("%s is not a directory", path)
+		return
+	}
+
+	// Verify it contains at least one symlinked file (SKILL.md)
+	skillFile := filepath.Join(path, "SKILL.md")
+	fileInfo, err := os.Lstat(skillFile)
+	if err != nil {
+		t.Errorf("SKILL.md not found in %s: %v", path, err)
+		return
+	}
+
+	if fileInfo.Mode()&os.ModeSymlink == 0 {
+		t.Errorf("SKILL.md in %s is not a symlink", path)
+		return
+	}
+
+	// Verify symlink resolves
+	_, err = os.Stat(skillFile)
+	if err != nil {
+		t.Errorf("broken symlink at %s: %v", skillFile, err)
 	}
 }
 
@@ -372,6 +406,14 @@ func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName string,
 				if _, err := os.Lstat(skillDir); err == nil {
 					t.Errorf("skill directory still exists at %s", skillDir)
 				}
+			}
+		}
+
+		// Verify tool root directory is removed when empty
+		if _, err := os.Stat(targetBase); err == nil {
+			entries, _ := os.ReadDir(targetBase)
+			if len(entries) == 0 {
+				t.Errorf("empty tool root directory should be removed: %s", targetBase)
 			}
 		}
 	}
@@ -540,6 +582,10 @@ func TestEmptyDirectoryCleanup(t *testing.T) {
 	if _, err := os.Stat(commandsDir); err != nil {
 		t.Errorf("commands directory should exist: %v", err)
 	}
+	skillsDir := filepath.Join(targetBase, "skills")
+	if _, err := os.Stat(skillsDir); err != nil {
+		t.Errorf("skills directory should exist: %v", err)
+	}
 
 	// Uninstall
 	_, err = inst.Uninstall("dir-based", ScopeGlobal)
@@ -549,10 +595,24 @@ func TestEmptyDirectoryCleanup(t *testing.T) {
 
 	// Verify empty directories are cleaned up
 	if _, err := os.Stat(commandsDir); err == nil {
-		// Check if it's actually empty
 		entries, _ := os.ReadDir(commandsDir)
 		if len(entries) == 0 {
 			t.Error("empty commands directory should be removed")
+		}
+	}
+
+	if _, err := os.Stat(skillsDir); err == nil {
+		entries, _ := os.ReadDir(skillsDir)
+		if len(entries) == 0 {
+			t.Error("empty skills directory should be removed")
+		}
+	}
+
+	// Verify tool root directory is also removed when empty
+	if _, err := os.Stat(targetBase); err == nil {
+		entries, _ := os.ReadDir(targetBase)
+		if len(entries) == 0 {
+			t.Error("empty tool root directory should be removed")
 		}
 	}
 }
@@ -572,21 +632,26 @@ func TestToolConventions_DirBasedSkills(t *testing.T) {
 	tool, _ := reg.GetTool("dir-based")
 	targetBase := tool.ResolveGlobalPath()
 
-	// For dir-based tool, skills should be at skills/{name} (directory symlink)
+	// For dir-based tool, skills should be at skills/{name} (directory with symlinked files)
 	skillDir := filepath.Join(targetBase, "skills", "skill-one")
-	info, err := os.Lstat(skillDir)
+	info, err := os.Stat(skillDir)
 	if err != nil {
 		t.Fatalf("skill directory not found: %v", err)
 	}
 
-	if info.Mode()&os.ModeSymlink == 0 {
-		t.Error("skill should be a symlink to directory")
+	if !info.IsDir() {
+		t.Error("skill should be a directory")
 	}
 
-	// The symlink should resolve to a directory containing SKILL.md
+	// The directory should contain SKILL.md as a symlink
 	skillFile := filepath.Join(skillDir, "SKILL.md")
-	if _, err := os.Stat(skillFile); err != nil {
+	fileInfo, err := os.Lstat(skillFile)
+	if err != nil {
 		t.Errorf("SKILL.md not found in skill directory: %v", err)
+	}
+
+	if fileInfo.Mode()&os.ModeSymlink == 0 {
+		t.Error("SKILL.md should be a symlink")
 	}
 }
 

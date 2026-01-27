@@ -152,9 +152,34 @@ func (i *Installer) installSkill(name, cacheDir, targetBase string, conv config.
 		return fmt.Errorf("SKILL.md not found in %s", cacheDest)
 	}
 
-	// For directory-based skills, symlink the directory
+	// For directory-based skills, create the directory and symlink individual files
 	destDir := filepath.Dir(dest)
-	return createSymlink(cacheDest, destDir)
+	return i.symlinkSkillFiles(cacheDest, destDir)
+}
+
+// symlinkSkillFiles creates the destination directory and symlinks each file individually
+func (i *Installer) symlinkSkillFiles(cacheDir, destDir string) error {
+	if err := os.MkdirAll(destDir, 0755); err != nil {
+		return fmt.Errorf("creating skill directory: %w", err)
+	}
+
+	return filepath.WalkDir(cacheDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, _ := filepath.Rel(cacheDir, path)
+		destPath := filepath.Join(destDir, relPath)
+
+		if d.IsDir() {
+			if path == cacheDir {
+				return nil // skip root, already created
+			}
+			return os.MkdirAll(destPath, 0755)
+		}
+
+		return createSymlink(path, destPath)
+	})
 }
 
 func (i *Installer) copySkillToCache(skillName, cacheDest string) error {
@@ -271,8 +296,8 @@ func (i *Installer) Uninstall(toolName string, scope Scope) (*InstallResult, err
 					}
 				}
 			} else {
-				// Directory-based skill - the symlink is at the skill directory level
-				// e.g., for skills/{name}/SKILL.md, the symlink is at skills/{name}
+				// Directory-based skill - remove the skill directory (contains symlinked files)
+				// e.g., for skills/{name}/SKILL.md, remove skills/{name}
 				skillDir := filepath.Dir(dest)
 				if _, err := os.Lstat(skillDir); err == nil {
 					if err := os.RemoveAll(skillDir); err == nil {
@@ -308,6 +333,7 @@ func cleanEmptyParents(dir, stopAt string) {
 		if err := os.Remove(dir); err != nil {
 			return
 		}
+		// Stop after removing stopAt to avoid climbing beyond tool root
 		if dir == stopAt {
 			return
 		}
