@@ -63,15 +63,12 @@ This ensures:
 Every combination of:
 
 - Tool conventions (directory-based skills, single-file skills, prompts-style commands)
-- Categories (all defined in extensions.yaml)
 - Scopes (global, local, both)
 
 ### Edge Cases
 
 - Unknown tool names
-- Unknown category names
 - Re-installing (overwrite)
-- Installing multiple categories
 - Empty directory cleanup on uninstall
 - Symlink integrity (points to valid cache files)
 - Cache content matches source

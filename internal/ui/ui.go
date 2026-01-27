@@ -38,9 +38,14 @@ func (u *UI) ChooseMulti(header string, options []string) ([]string, error) {
 		return []string{}, nil
 	}
 
+	isRetry := false
 	for {
+		// Clear previous warning on retry
+		if isRetry {
+			u.ClearLines(1)
+		}
+
 		args := []string{"choose", "--no-limit", "--header", header}
-		// Styling - keep gum's default prefixes (✓ and •) which handle cursor properly
 		args = append(args, "--cursor.foreground", u.Theme.Primary)
 		args = append(args, "--selected.foreground", u.Theme.Success)
 		args = append(args, "--header.foreground", u.Theme.Secondary)
@@ -58,6 +63,7 @@ func (u *UI) ChooseMulti(header string, options []string) ([]string, error) {
 		result := strings.TrimSpace(string(out))
 		if result == "" {
 			u.Warn("Please select at least one (Space to toggle, Enter to confirm)")
+			isRetry = true
 			continue
 		}
 
@@ -70,6 +76,9 @@ func (u *UI) Confirm(prompt string) (bool, error) {
 	args = append(args, "--affirmative", "Yes")
 	args = append(args, "--negative", "No")
 	args = append(args, "--prompt.foreground", u.Theme.Primary)
+	args = append(args, "--prompt.margin", "0")
+	args = append(args, "--selected.margin", "0")
+	args = append(args, "--unselected.margin", "0")
 
 	cmd := exec.Command("gum", args...)
 	cmd.Stdin = os.Stdin
@@ -124,7 +133,28 @@ func (u *UI) Warn(msg string) {
 }
 
 func (u *UI) Header(msg string) {
-	fmt.Printf("\033[38;2;%sm%s\033[0m\n", hexToRGB(u.Theme.Secondary), msg)
+	fmt.Printf("\n\033[38;2;%sm%s\033[0m\n", hexToRGB(u.Theme.Secondary), msg)
+}
+
+func (u *UI) ClearLines(n int) {
+	for i := 0; i < n; i++ {
+		fmt.Print("\033[1A\033[2K")
+	}
+}
+
+func (u *UI) Summary(content string) {
+	args := []string{"style",
+		"--border", "rounded",
+		"--padding", "0 1",
+		"--margin", "0 0 0 0",
+		"--border-foreground", u.Theme.Muted,
+		content,
+	}
+
+	cmd := exec.Command("gum", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }
 
 func (u *UI) Title() {

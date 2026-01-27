@@ -23,27 +23,11 @@ func createTestFS() fstest.MapFS {
       skills: skills/{name}.md
       commands: prompts/{name}.md
 `)},
-		"extensions.yaml": &fstest.MapFile{Data: []byte(`categories:
-  cat-one:
-    description: Category One
-    commands:
-      - cmd-one
-      - cmd-two
-    skills:
-      - skill-one
-  cat-two:
-    description: Category Two
-    commands:
-      - cmd-three
-    skills:
-      - skill-two
-      - skill-three
-`)},
-		"repository/commands/cmd-one.md":        &fstest.MapFile{Data: []byte("# Command One\nContent here")},
-		"repository/commands/cmd-two.md":        &fstest.MapFile{Data: []byte("# Command Two\nContent here")},
-		"repository/commands/cmd-three.md":      &fstest.MapFile{Data: []byte("# Command Three\nContent here")},
-		"repository/skills/skill-one/SKILL.md":  &fstest.MapFile{Data: []byte("# Skill One\nContent")},
-		"repository/skills/skill-two/SKILL.md":  &fstest.MapFile{Data: []byte("# Skill Two\nContent")},
+		"repository/commands/cmd-one.md":         &fstest.MapFile{Data: []byte("# Command One\nContent here")},
+		"repository/commands/cmd-two.md":         &fstest.MapFile{Data: []byte("# Command Two\nContent here")},
+		"repository/commands/cmd-three.md":       &fstest.MapFile{Data: []byte("# Command Three\nContent here")},
+		"repository/skills/skill-one/SKILL.md":   &fstest.MapFile{Data: []byte("# Skill One\nContent")},
+		"repository/skills/skill-two/SKILL.md":   &fstest.MapFile{Data: []byte("# Skill Two\nContent")},
 		"repository/skills/skill-three/SKILL.md": &fstest.MapFile{Data: []byte("# Skill Three\nContent")},
 	}
 }
@@ -62,52 +46,14 @@ func TestNew(t *testing.T) {
 	if reg.Tools == nil {
 		t.Error("Tools should not be nil")
 	}
-	if reg.Extensions == nil {
-		t.Error("Extensions should not be nil")
-	}
 }
 
 func TestNew_MissingToolsYAML(t *testing.T) {
-	fsys := fstest.MapFS{
-		"extensions.yaml": &fstest.MapFile{Data: []byte(`categories: {}`)},
-	}
+	fsys := fstest.MapFS{}
 
 	_, err := New(fsys)
 	if err == nil {
 		t.Error("expected error for missing tools.yaml")
-	}
-}
-
-func TestNew_MissingExtensionsYAML(t *testing.T) {
-	fsys := fstest.MapFS{
-		"tools.yaml": &fstest.MapFile{Data: []byte(`tools: {}`)},
-	}
-
-	_, err := New(fsys)
-	if err == nil {
-		t.Error("expected error for missing extensions.yaml")
-	}
-}
-
-func TestRegistry_GetCategoryNames(t *testing.T) {
-	fsys := createTestFS()
-	reg, _ := New(fsys)
-
-	names := reg.GetCategoryNames()
-	if len(names) != 2 {
-		t.Errorf("expected 2 categories, got %d", len(names))
-	}
-
-	nameMap := make(map[string]bool)
-	for _, n := range names {
-		nameMap[n] = true
-	}
-
-	if !nameMap["cat-one"] {
-		t.Error("cat-one should be in category names")
-	}
-	if !nameMap["cat-two"] {
-		t.Error("cat-two should be in category names")
 	}
 }
 
@@ -133,33 +79,53 @@ func TestRegistry_GetToolNames(t *testing.T) {
 	}
 }
 
-func TestRegistry_GetCategory(t *testing.T) {
+func TestRegistry_GetAllCommands(t *testing.T) {
 	fsys := createTestFS()
 	reg, _ := New(fsys)
 
-	cat, ok := reg.GetCategory("cat-one")
-	if !ok {
-		t.Fatal("cat-one should exist")
+	commands := reg.GetAllCommands()
+	if len(commands) != 3 {
+		t.Errorf("expected 3 commands, got %d", len(commands))
 	}
 
-	if cat.Description != "Category One" {
-		t.Errorf("expected description 'Category One', got %q", cat.Description)
+	cmdMap := make(map[string]bool)
+	for _, c := range commands {
+		cmdMap[c] = true
 	}
-	if len(cat.Commands) != 2 {
-		t.Errorf("expected 2 commands, got %d", len(cat.Commands))
+
+	if !cmdMap["cmd-one"] {
+		t.Error("cmd-one should be in commands")
 	}
-	if len(cat.Skills) != 1 {
-		t.Errorf("expected 1 skill, got %d", len(cat.Skills))
+	if !cmdMap["cmd-two"] {
+		t.Error("cmd-two should be in commands")
+	}
+	if !cmdMap["cmd-three"] {
+		t.Error("cmd-three should be in commands")
 	}
 }
 
-func TestRegistry_GetCategory_NotFound(t *testing.T) {
+func TestRegistry_GetAllSkills(t *testing.T) {
 	fsys := createTestFS()
 	reg, _ := New(fsys)
 
-	_, ok := reg.GetCategory("nonexistent")
-	if ok {
-		t.Error("nonexistent category should return false")
+	skills := reg.GetAllSkills()
+	if len(skills) != 3 {
+		t.Errorf("expected 3 skills, got %d", len(skills))
+	}
+
+	skillMap := make(map[string]bool)
+	for _, s := range skills {
+		skillMap[s] = true
+	}
+
+	if !skillMap["skill-one"] {
+		t.Error("skill-one should be in skills")
+	}
+	if !skillMap["skill-two"] {
+		t.Error("skill-two should be in skills")
+	}
+	if !skillMap["skill-three"] {
+		t.Error("skill-three should be in skills")
 	}
 }
 

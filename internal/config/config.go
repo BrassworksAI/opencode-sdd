@@ -26,15 +26,7 @@ type ToolsConfig struct {
 	Tools map[string]Tool `yaml:"tools"`
 }
 
-type Category struct {
-	Description string   `yaml:"description"`
-	Commands    []string `yaml:"commands"`
-	Skills      []string `yaml:"skills"`
-}
 
-type ExtensionsConfig struct {
-	Categories map[string]Category `yaml:"categories"`
-}
 
 func LoadToolsConfig(path string) (*ToolsConfig, error) {
 	data, err := os.ReadFile(path)
@@ -64,33 +56,7 @@ func LoadToolsConfigFromFS(fsys fs.FS, path string) (*ToolsConfig, error) {
 	return &cfg, nil
 }
 
-func LoadExtensionsConfig(path string) (*ExtensionsConfig, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading extensions config: %w", err)
-	}
 
-	var cfg ExtensionsConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("parsing extensions config: %w", err)
-	}
-
-	return &cfg, nil
-}
-
-func LoadExtensionsConfigFromFS(fsys fs.FS, path string) (*ExtensionsConfig, error) {
-	data, err := fs.ReadFile(fsys, path)
-	if err != nil {
-		return nil, fmt.Errorf("reading extensions config: %w", err)
-	}
-
-	var cfg ExtensionsConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("parsing extensions config: %w", err)
-	}
-
-	return &cfg, nil
-}
 
 func (t *Tool) ResolveGlobalPath() string {
 	path := t.GlobalPath

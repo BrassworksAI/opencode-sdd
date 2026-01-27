@@ -70,20 +70,19 @@ ae
 
 ### Interactive Mode
 
-1. **Select categories** - Choose between product (minimal) and dev (comprehensive) extension sets
-2. **Select tools** - Pick which AI agents to configure
-3. **Select scope** - Install globally, locally, or both
+1. **Select tools** - Pick which AI agents to configure
+2. **Select scope** - Install globally, locally, or both
 
 ### Non-Interactive Mode
 
 ```sh
-# Install dev extensions for all tools globally
-ae install --category dev --tools all --scope global --yes
+# Install to all tools globally
+ae install --tools all --scope global --yes
 
-# Install product extensions for specific tools locally
-ae install -c product -t claude-code,codex -s local -y
+# Install to specific tools locally
+ae install -t claude-code,codex -s local -y
 
-# Uninstall all extensions
+# Uninstall from all tools
 ae uninstall --yes
 ```
 
@@ -91,24 +90,8 @@ ae uninstall --yes
 
 | Command | Description |
 |---------|-------------|
-| `ae install` | Install extensions for selected tools |
-| `ae uninstall` | Remove installed extensions |
-| `ae list` | Show installed extensions by category |
+| `ae install` | Install commands and skills for selected tools |
+| `ae uninstall` | Remove installed commands and skills |
+| `ae list` | Show available content and installation status |
 | `ae doctor` | Check configuration health |
 | `ae version` | Display version information |
-
-## Extension Categories
-
-### Product
-
-Minimal set for production workflows:
-
-- 2 commands
-- 3 skills
-
-### Dev
-
-Comprehensive set for development:
-
-- 14 commands
-- 8 skills

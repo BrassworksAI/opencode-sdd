@@ -66,17 +66,4 @@ tools:
       commands: commands/{name}.md
 ```
 
-### extensions.yaml
-
-Defines extension categories:
-
-```yaml
-categories:
-  category-name:
-    description: What this category provides
-    commands:
-      - command-one
-      - command-two
-    skills:
-      - skill-one
-```
+Commands and skills are automatically discovered from the `repository/` directory.

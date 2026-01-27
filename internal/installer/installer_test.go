@@ -34,21 +34,7 @@ var testToolsYAML = `tools:
       commands: prompts/{name}.md
 `
 
-var testExtensionsYAML = `categories:
-  cat-a:
-    description: Category A
-    commands:
-      - cmd-one
-      - cmd-two
-    skills:
-      - skill-one
-  cat-b:
-    description: Category B
-    commands:
-      - cmd-three
-    skills:
-      - skill-two
-`
+
 
 func createTestRegistry(t *testing.T, globalBase string) *registry.Registry {
 	t.Helper()
@@ -82,14 +68,13 @@ func createTestRegistry(t *testing.T, globalBase string) *registry.Registry {
 `
 
 	fsys := fstest.MapFS{
-		"tools.yaml":      &fstest.MapFile{Data: []byte(toolsYAML)},
-		"extensions.yaml": &fstest.MapFile{Data: []byte(testExtensionsYAML)},
-		"repository/commands/cmd-one.md":   &fstest.MapFile{Data: []byte("# Command One\nThis is command one content.")},
-		"repository/commands/cmd-two.md":   &fstest.MapFile{Data: []byte("# Command Two\nThis is command two content.")},
-		"repository/commands/cmd-three.md": &fstest.MapFile{Data: []byte("# Command Three\nThis is command three content.")},
-		"repository/skills/skill-one/SKILL.md":    &fstest.MapFile{Data: []byte("# Skill One\nSkill one content.")},
-		"repository/skills/skill-one/helper.md":   &fstest.MapFile{Data: []byte("Helper file for skill one.")},
-		"repository/skills/skill-two/SKILL.md":    &fstest.MapFile{Data: []byte("# Skill Two\nSkill two content.")},
+		"tools.yaml":                            &fstest.MapFile{Data: []byte(toolsYAML)},
+		"repository/commands/cmd-one.md":        &fstest.MapFile{Data: []byte("# Command One\nThis is command one content.")},
+		"repository/commands/cmd-two.md":        &fstest.MapFile{Data: []byte("# Command Two\nThis is command two content.")},
+		"repository/commands/cmd-three.md":      &fstest.MapFile{Data: []byte("# Command Three\nThis is command three content.")},
+		"repository/skills/skill-one/SKILL.md":  &fstest.MapFile{Data: []byte("# Skill One\nSkill one content.")},
+		"repository/skills/skill-one/helper.md": &fstest.MapFile{Data: []byte("Helper file for skill one.")},
+		"repository/skills/skill-two/SKILL.md":  &fstest.MapFile{Data: []byte("# Skill Two\nSkill two content.")},
 	}
 
 	reg, err := registry.New(fsys)
@@ -138,46 +123,44 @@ func TestInstaller_cacheDir(t *testing.T) {
 	}
 }
 
-// TestInstallMatrix tests all tool × category × scope combinations
+// TestInstallMatrix tests all tool × scope combinations
 func TestInstallMatrix(t *testing.T) {
 	tools := []string{"dir-based", "single-file", "prompts-style"}
-	categories := []string{"cat-a", "cat-b"}
 	scopes := []Scope{ScopeGlobal, ScopeLocal, ScopeBoth}
 
 	for _, tool := range tools {
-		for _, cat := range categories {
-			for _, scope := range scopes {
-				name := tool + "/" + cat + "/" + string(scope)
-				t.Run(name, func(t *testing.T) {
-					globalDir := t.TempDir()
-					projectRoot := t.TempDir()
-					reg := createTestRegistry(t, globalDir)
-					inst := New(reg, projectRoot)
+		for _, scope := range scopes {
+			name := tool + "/" + string(scope)
+			t.Run(name, func(t *testing.T) {
+				globalDir := t.TempDir()
+				projectRoot := t.TempDir()
+				reg := createTestRegistry(t, globalDir)
+				inst := New(reg, projectRoot)
 
-					result, err := inst.Install(tool, scope, cat)
-					if err != nil {
-						t.Fatalf("Install failed: %v", err)
+				result, err := inst.Install(tool, scope)
+				if err != nil {
+					t.Fatalf("Install failed: %v", err)
+				}
+
+				if len(result.Errors) > 0 {
+					for _, e := range result.Errors {
+						t.Errorf("Install error: %v", e)
 					}
+				}
 
-					if len(result.Errors) > 0 {
-						for _, e := range result.Errors {
-							t.Errorf("Install error: %v", e)
-						}
-					}
-
-					// Verify installation based on scope
-					verifyInstallation(t, reg, inst, tool, cat, scope, globalDir, projectRoot)
-				})
-			}
+				// Verify installation based on scope
+				verifyInstallation(t, reg, inst, tool, scope, globalDir, projectRoot)
+			})
 		}
 	}
 }
 
-func verifyInstallation(t *testing.T, reg *registry.Registry, inst *Installer, toolName, catName string, scope Scope, globalDir, projectRoot string) {
+func verifyInstallation(t *testing.T, reg *registry.Registry, inst *Installer, toolName string, scope Scope, globalDir, projectRoot string) {
 	t.Helper()
 
 	tool, _ := reg.GetTool(toolName)
-	cat, _ := reg.GetCategory(catName)
+	commands := reg.GetAllCommands()
+	skills := reg.GetAllSkills()
 
 	checkScopes := []Scope{scope}
 	if scope == ScopeBoth {
@@ -193,14 +176,14 @@ func verifyInstallation(t *testing.T, reg *registry.Registry, inst *Installer, t
 		}
 
 		// Verify commands
-		for _, cmd := range cat.Commands {
+		for _, cmd := range commands {
 			cmdPath := filepath.Join(targetBase, tool.Conventions.CommandPath(cmd))
 			verifySymlink(t, cmdPath, cmd+".md")
 			verifySymlinkContent(t, cmdPath, "# Command")
 		}
 
 		// Verify skills
-		for _, skill := range cat.Skills {
+		for _, skill := range skills {
 			skillPath := tool.Conventions.SkillPath(skill)
 			fullPath := filepath.Join(targetBase, skillPath)
 
@@ -298,64 +281,61 @@ func searchString(s, substr string) bool {
 	return false
 }
 
-// TestUninstallMatrix tests all tool × category × scope uninstall combinations
+// TestUninstallMatrix tests all tool × scope uninstall combinations
 func TestUninstallMatrix(t *testing.T) {
 	tools := []string{"dir-based", "single-file", "prompts-style"}
-	categories := []string{"cat-a", "cat-b"}
 	scopes := []Scope{ScopeGlobal, ScopeLocal, ScopeBoth}
 
 	for _, tool := range tools {
-		for _, cat := range categories {
-			for _, scope := range scopes {
-				name := tool + "/" + cat + "/" + string(scope)
-				t.Run(name, func(t *testing.T) {
-					globalDir := t.TempDir()
-					projectRoot := t.TempDir()
-					reg := createTestRegistry(t, globalDir)
-					inst := New(reg, projectRoot)
+		for _, scope := range scopes {
+			name := tool + "/" + string(scope)
+			t.Run(name, func(t *testing.T) {
+				globalDir := t.TempDir()
+				projectRoot := t.TempDir()
+				reg := createTestRegistry(t, globalDir)
+				inst := New(reg, projectRoot)
 
-					// First install
-					_, err := inst.Install(tool, scope, cat)
-					if err != nil {
-						t.Fatalf("Install failed: %v", err)
-					}
+				// First install
+				_, err := inst.Install(tool, scope)
+				if err != nil {
+					t.Fatalf("Install failed: %v", err)
+				}
 
-					// Then uninstall
-					result, err := inst.Uninstall(tool, scope, cat)
-					if err != nil {
-						t.Fatalf("Uninstall failed: %v", err)
-					}
+				// Then uninstall
+				result, err := inst.Uninstall(tool, scope)
+				if err != nil {
+					t.Fatalf("Uninstall failed: %v", err)
+				}
 
-					// Verify counts
-					catConfig, _ := reg.GetCategory(cat)
-					expectedCommands := len(catConfig.Commands)
-					expectedSkills := len(catConfig.Skills)
+				// Verify counts
+				expectedCommands := len(reg.GetAllCommands())
+				expectedSkills := len(reg.GetAllSkills())
 
-					if scope == ScopeBoth {
-						expectedCommands *= 2
-						expectedSkills *= 2
-					}
+				if scope == ScopeBoth {
+					expectedCommands *= 2
+					expectedSkills *= 2
+				}
 
-					if result.Commands != expectedCommands {
-						t.Errorf("uninstalled %d commands, expected %d", result.Commands, expectedCommands)
-					}
-					if result.Skills != expectedSkills {
-						t.Errorf("uninstalled %d skills, expected %d", result.Skills, expectedSkills)
-					}
+				if result.Commands != expectedCommands {
+					t.Errorf("uninstalled %d commands, expected %d", result.Commands, expectedCommands)
+				}
+				if result.Skills != expectedSkills {
+					t.Errorf("uninstalled %d skills, expected %d", result.Skills, expectedSkills)
+				}
 
-					// Verify removal
-					verifyUninstallation(t, reg, tool, cat, scope, globalDir, projectRoot)
-				})
-			}
+				// Verify removal
+				verifyUninstallation(t, reg, tool, scope, globalDir, projectRoot)
+			})
 		}
 	}
 }
 
-func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName, catName string, scope Scope, globalDir, projectRoot string) {
+func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName string, scope Scope, globalDir, projectRoot string) {
 	t.Helper()
 
 	tool, _ := reg.GetTool(toolName)
-	cat, _ := reg.GetCategory(catName)
+	commands := reg.GetAllCommands()
+	skills := reg.GetAllSkills()
 
 	checkScopes := []Scope{scope}
 	if scope == ScopeBoth {
@@ -371,7 +351,7 @@ func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName, catNam
 		}
 
 		// Verify commands are removed
-		for _, cmd := range cat.Commands {
+		for _, cmd := range commands {
 			cmdPath := filepath.Join(targetBase, tool.Conventions.CommandPath(cmd))
 			if _, err := os.Lstat(cmdPath); err == nil {
 				t.Errorf("command still exists at %s", cmdPath)
@@ -379,7 +359,7 @@ func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName, catNam
 		}
 
 		// Verify skills are removed
-		for _, skill := range cat.Skills {
+		for _, skill := range skills {
 			skillPath := tool.Conventions.SkillPath(skill)
 			fullPath := filepath.Join(targetBase, skillPath)
 
@@ -397,27 +377,59 @@ func verifyUninstallation(t *testing.T, reg *registry.Registry, toolName, catNam
 	}
 }
 
+func TestUninstall_NotInstalled(t *testing.T) {
+	globalDir := t.TempDir()
+	projectRoot := t.TempDir()
+	reg := createTestRegistry(t, globalDir)
+	inst := New(reg, projectRoot)
+
+	// Install to only one tool
+	_, err := inst.Install("dir-based", ScopeGlobal)
+	if err != nil {
+		t.Fatalf("Install failed: %v", err)
+	}
+
+	// Uninstall from a tool that was never installed to
+	result, err := inst.Uninstall("single-file", ScopeGlobal)
+	if err != nil {
+		t.Fatalf("Uninstall failed: %v", err)
+	}
+
+	// Should report zero removals since nothing was installed there
+	if result.Commands != 0 {
+		t.Errorf("expected 0 commands removed, got %d", result.Commands)
+	}
+	if result.Skills != 0 {
+		t.Errorf("expected 0 skills removed, got %d", result.Skills)
+	}
+
+	// Uninstall from the tool that was actually installed
+	result, err = inst.Uninstall("dir-based", ScopeGlobal)
+	if err != nil {
+		t.Fatalf("Uninstall failed: %v", err)
+	}
+
+	// Should report actual removals
+	expectedCommands := len(reg.GetAllCommands())
+	expectedSkills := len(reg.GetAllSkills())
+
+	if result.Commands != expectedCommands {
+		t.Errorf("expected %d commands removed, got %d", expectedCommands, result.Commands)
+	}
+	if result.Skills != expectedSkills {
+		t.Errorf("expected %d skills removed, got %d", expectedSkills, result.Skills)
+	}
+}
+
 func TestInstall_UnknownTool(t *testing.T) {
 	globalDir := t.TempDir()
 	projectRoot := t.TempDir()
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Install("nonexistent-tool", ScopeGlobal, "cat-a")
+	_, err := inst.Install("nonexistent-tool", ScopeGlobal)
 	if err == nil {
 		t.Error("expected error for unknown tool")
-	}
-}
-
-func TestInstall_UnknownCategory(t *testing.T) {
-	globalDir := t.TempDir()
-	projectRoot := t.TempDir()
-	reg := createTestRegistry(t, globalDir)
-	inst := New(reg, projectRoot)
-
-	_, err := inst.Install("dir-based", ScopeGlobal, "nonexistent-category")
-	if err == nil {
-		t.Error("expected error for unknown category")
 	}
 }
 
@@ -427,21 +439,9 @@ func TestUninstall_UnknownTool(t *testing.T) {
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Uninstall("nonexistent-tool", ScopeGlobal, "cat-a")
+	_, err := inst.Uninstall("nonexistent-tool", ScopeGlobal)
 	if err == nil {
 		t.Error("expected error for unknown tool")
-	}
-}
-
-func TestUninstall_UnknownCategory(t *testing.T) {
-	globalDir := t.TempDir()
-	projectRoot := t.TempDir()
-	reg := createTestRegistry(t, globalDir)
-	inst := New(reg, projectRoot)
-
-	_, err := inst.Uninstall("dir-based", ScopeGlobal, "nonexistent-category")
-	if err == nil {
-		t.Error("expected error for unknown category")
 	}
 }
 
@@ -452,13 +452,13 @@ func TestInstall_Reinstall(t *testing.T) {
 	inst := New(reg, projectRoot)
 
 	// Install once
-	result1, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
+	result1, err := inst.Install("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("first install failed: %v", err)
 	}
 
 	// Install again (should overwrite without error)
-	result2, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
+	result2, err := inst.Install("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("second install failed: %v", err)
 	}
@@ -471,40 +471,7 @@ func TestInstall_Reinstall(t *testing.T) {
 	}
 
 	// Verify still works
-	verifyInstallation(t, reg, inst, "dir-based", "cat-a", ScopeGlobal, globalDir, projectRoot)
-}
-
-func TestInstall_MultipleCategories(t *testing.T) {
-	globalDir := t.TempDir()
-	projectRoot := t.TempDir()
-	reg := createTestRegistry(t, globalDir)
-	inst := New(reg, projectRoot)
-
-	// Install cat-a
-	_, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
-	if err != nil {
-		t.Fatalf("cat-a install failed: %v", err)
-	}
-
-	// Install cat-b
-	_, err = inst.Install("dir-based", ScopeGlobal, "cat-b")
-	if err != nil {
-		t.Fatalf("cat-b install failed: %v", err)
-	}
-
-	// Verify both are installed
-	verifyInstallation(t, reg, inst, "dir-based", "cat-a", ScopeGlobal, globalDir, projectRoot)
-	verifyInstallation(t, reg, inst, "dir-based", "cat-b", ScopeGlobal, globalDir, projectRoot)
-
-	// Uninstall only cat-a
-	_, err = inst.Uninstall("dir-based", ScopeGlobal, "cat-a")
-	if err != nil {
-		t.Fatalf("cat-a uninstall failed: %v", err)
-	}
-
-	// Verify cat-a is gone but cat-b remains
-	verifyUninstallation(t, reg, "dir-based", "cat-a", ScopeGlobal, globalDir, projectRoot)
-	verifyInstallation(t, reg, inst, "dir-based", "cat-b", ScopeGlobal, globalDir, projectRoot)
+	verifyInstallation(t, reg, inst, "dir-based", ScopeGlobal, globalDir, projectRoot)
 }
 
 func TestCacheContentIntegrity(t *testing.T) {
@@ -513,7 +480,7 @@ func TestCacheContentIntegrity(t *testing.T) {
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
+	_, err := inst.Install("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -563,7 +530,7 @@ func TestEmptyDirectoryCleanup(t *testing.T) {
 	targetBase := tool.ResolveGlobalPath()
 
 	// Install
-	_, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
+	_, err := inst.Install("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -575,7 +542,7 @@ func TestEmptyDirectoryCleanup(t *testing.T) {
 	}
 
 	// Uninstall
-	_, err = inst.Uninstall("dir-based", ScopeGlobal, "cat-a")
+	_, err = inst.Uninstall("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Uninstall failed: %v", err)
 	}
@@ -597,7 +564,7 @@ func TestToolConventions_DirBasedSkills(t *testing.T) {
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Install("dir-based", ScopeGlobal, "cat-a")
+	_, err := inst.Install("dir-based", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -629,7 +596,7 @@ func TestToolConventions_SingleFileSkills(t *testing.T) {
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Install("single-file", ScopeGlobal, "cat-a")
+	_, err := inst.Install("single-file", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -665,7 +632,7 @@ func TestToolConventions_PromptsStyle(t *testing.T) {
 	reg := createTestRegistry(t, globalDir)
 	inst := New(reg, projectRoot)
 
-	_, err := inst.Install("prompts-style", ScopeGlobal, "cat-a")
+	_, err := inst.Install("prompts-style", ScopeGlobal)
 	if err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -696,21 +663,13 @@ func BenchmarkInstall(b *testing.B) {
       skills: skills/{name}/SKILL.md
       commands: commands/{name}.md
 `)},
-			"extensions.yaml": &fstest.MapFile{Data: []byte(`categories:
-  bench:
-    description: Benchmark category
-    commands:
-      - cmd-one
-    skills:
-      - skill-one
-`)},
-			"repository/commands/cmd-one.md":      &fstest.MapFile{Data: []byte("# Command")},
+			"repository/commands/cmd-one.md":       &fstest.MapFile{Data: []byte("# Command")},
 			"repository/skills/skill-one/SKILL.md": &fstest.MapFile{Data: []byte("# Skill")},
 		}
 
 		reg, _ := registry.New(fsys)
 		inst := New(reg, projectRoot)
-		inst.Install("bench-tool", ScopeGlobal, "bench")
+		inst.Install("bench-tool", ScopeGlobal)
 	}
 }
 
@@ -729,23 +688,15 @@ func BenchmarkUninstall(b *testing.B) {
       skills: skills/{name}/SKILL.md
       commands: commands/{name}.md
 `)},
-			"extensions.yaml": &fstest.MapFile{Data: []byte(`categories:
-  bench:
-    description: Benchmark category
-    commands:
-      - cmd-one
-    skills:
-      - skill-one
-`)},
-			"repository/commands/cmd-one.md":      &fstest.MapFile{Data: []byte("# Command")},
+			"repository/commands/cmd-one.md":       &fstest.MapFile{Data: []byte("# Command")},
 			"repository/skills/skill-one/SKILL.md": &fstest.MapFile{Data: []byte("# Skill")},
 		}
 
 		reg, _ := registry.New(fsys)
 		inst := New(reg, projectRoot)
-		inst.Install("bench-tool", ScopeGlobal, "bench")
+		inst.Install("bench-tool", ScopeGlobal)
 
 		b.ResetTimer()
-		inst.Uninstall("bench-tool", ScopeGlobal, "bench")
+		inst.Uninstall("bench-tool", ScopeGlobal)
 	}
 }

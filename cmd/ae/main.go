@@ -68,19 +68,16 @@ var versionCmd = &cobra.Command{
 }
 
 var (
-	flagCategory string
-	flagTools    []string
-	flagScope    string
-	flagYes      bool
+	flagTools []string
+	flagScope string
+	flagYes   bool
 )
 
 func init() {
-	installCmd.Flags().StringVarP(&flagCategory, "category", "c", "", "Category to install (product, dev)")
 	installCmd.Flags().StringSliceVarP(&flagTools, "tools", "t", nil, "Tools to install to (comma-separated)")
 	installCmd.Flags().StringVarP(&flagScope, "scope", "s", "", "Installation scope (global, local, both)")
 	installCmd.Flags().BoolVarP(&flagYes, "yes", "y", false, "Skip confirmation")
 
-	uninstallCmd.Flags().StringVarP(&flagCategory, "category", "c", "", "Category to uninstall")
 	uninstallCmd.Flags().StringSliceVarP(&flagTools, "tools", "t", nil, "Tools to uninstall from (comma-separated)")
 	uninstallCmd.Flags().StringVarP(&flagScope, "scope", "s", "", "Uninstallation scope (global, local, both)")
 	uninstallCmd.Flags().BoolVarP(&flagYes, "yes", "y", false, "Skip confirmation")
@@ -116,60 +113,17 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("loading registry: %w", err)
 	}
 
-	var selectedCategories []string
 	var selectedTools []string
 	var scope string
 
-	// Use flags if provided, otherwise interactive
-	if flagCategory != "" {
-		selectedCategories = strings.Split(flagCategory, ",")
-	} else {
-		categories := reg.GetCategoryNames()
-		sort.Strings(categories)
-
-		// Build category options with aligned columns
-		categoryOptions := make([]string, len(categories))
-		for i, catName := range categories {
-			cat, _ := reg.GetCategory(catName)
-			categoryOptions[i] = fmt.Sprintf("%-8s │ %2d commands, %2d skills │ %s",
-				catName, len(cat.Commands), len(cat.Skills), cat.Description)
-		}
-
-		selected, err := u.ChooseMulti("Select packages to install:", categoryOptions)
-		if err != nil {
-			return err
-		}
-		// Extract category names from selections
-		for _, sel := range selected {
-			parts := strings.Split(sel, " │ ")
-			if len(parts) > 0 {
-				selectedCategories = append(selectedCategories, strings.TrimSpace(parts[0]))
-			}
-		}
-	}
-
-	// Collect all commands and skills from selected categories
-	totalCommands := 0
-	totalSkills := 0
-	for _, catName := range selectedCategories {
-		cat, ok := reg.GetCategory(catName)
-		if !ok {
-			return fmt.Errorf("unknown category: %s", catName)
-		}
-		totalCommands += len(cat.Commands)
-		totalSkills += len(cat.Skills)
-	}
-
-	fmt.Println()
-	u.Info(fmt.Sprintf("Selected: %s (%d commands, %d skills)",
-		strings.Join(selectedCategories, ", "), totalCommands, totalSkills))
+	totalCommands := len(reg.GetAllCommands())
+	totalSkills := len(reg.GetAllSkills())
 
 	if len(flagTools) > 0 {
 		selectedTools = flagTools
 	} else {
 		tools := reg.GetToolNames()
 		sort.Strings(tools)
-		fmt.Println()
 		selectedTools, err = u.ChooseMulti("Select tools to install to:", tools)
 		if err != nil {
 			return err
@@ -179,7 +133,6 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	if flagScope != "" {
 		scope = flagScope
 	} else {
-		fmt.Println()
 		scope, err = u.Choose("Select scope:", []string{"global", "local", "both"})
 		if err != nil {
 			return err
@@ -199,7 +152,6 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	}
 
 	// Confirm
-	fmt.Println()
 	if !flagYes {
 		confirmMsg := fmt.Sprintf("Install %d commands and %d skills to %d tools (%s)?",
 			totalCommands, totalSkills, len(selectedTools), scope)
@@ -215,34 +167,26 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// Install
 	inst := installer.New(reg, getProjectRoot())
-
-	fmt.Println()
-	installedCommands := 0
-	installedSkills := 0
+	var lines []string
 
 	for _, toolName := range selectedTools {
-		for _, catName := range selectedCategories {
-			result, err := inst.Install(toolName, installScope, catName)
-			if err != nil {
-				u.Error(fmt.Sprintf("%s: %v", toolName, err))
-				continue
-			}
-
-			if len(result.Errors) > 0 {
-				for _, e := range result.Errors {
-					u.Warn(fmt.Sprintf("%s: %v", toolName, e))
-				}
-			}
-
-			tool, _ := reg.GetTool(toolName)
-			u.Success(fmt.Sprintf("%s [%s]: %d commands, %d skills", tool.Name, catName, result.Commands, result.Skills))
-			installedCommands += result.Commands
-			installedSkills += result.Skills
+		result, err := inst.Install(toolName, installScope)
+		if err != nil {
+			lines = append(lines, fmt.Sprintf("✗ %s: %v", toolName, err))
+			continue
 		}
+
+		if len(result.Errors) > 0 {
+			for _, e := range result.Errors {
+				lines = append(lines, fmt.Sprintf("! %s: %v", toolName, e))
+			}
+		}
+
+		tool, _ := reg.GetTool(toolName)
+		lines = append(lines, fmt.Sprintf("✓ %s: %d commands, %d skills", tool.Name, result.Commands, result.Skills))
 	}
 
-	fmt.Println()
-	u.Success(fmt.Sprintf("Installed %d commands and %d skills total", installedCommands, installedSkills))
+	u.Summary(strings.Join(lines, "\n"))
 
 	return nil
 }
@@ -257,57 +201,17 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("loading registry: %w", err)
 	}
 
-	var selectedCategories []string
 	var selectedTools []string
 	var scope string
 
-	if flagCategory != "" {
-		selectedCategories = strings.Split(flagCategory, ",")
-	} else {
-		categories := reg.GetCategoryNames()
-		sort.Strings(categories)
-
-		categoryOptions := make([]string, len(categories))
-		for i, catName := range categories {
-			cat, _ := reg.GetCategory(catName)
-			categoryOptions[i] = fmt.Sprintf("%-8s │ %2d commands, %2d skills │ %s",
-				catName, len(cat.Commands), len(cat.Skills), cat.Description)
-		}
-
-		selected, err := u.ChooseMulti("Select packages to uninstall:", categoryOptions)
-		if err != nil {
-			return err
-		}
-		for _, sel := range selected {
-			parts := strings.Split(sel, " │ ")
-			if len(parts) > 0 {
-				selectedCategories = append(selectedCategories, strings.TrimSpace(parts[0]))
-			}
-		}
-	}
-
-	// Validate categories
-	totalCommands := 0
-	totalSkills := 0
-	for _, catName := range selectedCategories {
-		cat, ok := reg.GetCategory(catName)
-		if !ok {
-			return fmt.Errorf("unknown category: %s", catName)
-		}
-		totalCommands += len(cat.Commands)
-		totalSkills += len(cat.Skills)
-	}
-
-	fmt.Println()
-	u.Info(fmt.Sprintf("Selected: %s (%d commands, %d skills)",
-		strings.Join(selectedCategories, ", "), totalCommands, totalSkills))
+	totalCommands := len(reg.GetAllCommands())
+	totalSkills := len(reg.GetAllSkills())
 
 	if len(flagTools) > 0 {
 		selectedTools = flagTools
 	} else {
 		tools := reg.GetToolNames()
 		sort.Strings(tools)
-		fmt.Println()
 		selectedTools, err = u.ChooseMulti("Select tools to uninstall from:", tools)
 		if err != nil {
 			return err
@@ -317,7 +221,6 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 	if flagScope != "" {
 		scope = flagScope
 	} else {
-		fmt.Println()
 		scope, err = u.Choose("Select scope:", []string{"global", "local", "both"})
 		if err != nil {
 			return err
@@ -337,10 +240,9 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 	}
 
 	// Confirm
-	fmt.Println()
 	if !flagYes {
-		confirmed, err := u.Confirm(fmt.Sprintf("Uninstall %d commands and %d skills from %d tools?",
-			totalCommands, totalSkills, len(selectedTools)))
+		confirmed, err := u.Confirm(fmt.Sprintf("Uninstall %d commands and %d skills from %d tools (%s)?",
+			totalCommands, totalSkills, len(selectedTools), scope))
 		if err != nil {
 			return err
 		}
@@ -352,28 +254,22 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 
 	// Uninstall
 	inst := installer.New(reg, getProjectRoot())
-
-	fmt.Println()
-	removedCommands := 0
-	removedSkills := 0
+	var lines []string
 
 	for _, toolName := range selectedTools {
-		for _, catName := range selectedCategories {
-			result, err := inst.Uninstall(toolName, uninstallScope, catName)
-			if err != nil {
-				u.Error(fmt.Sprintf("%s: %v", toolName, err))
-				continue
-			}
+		result, err := inst.Uninstall(toolName, uninstallScope)
+		if err != nil {
+			lines = append(lines, fmt.Sprintf("✗ %s: %v", toolName, err))
+			continue
+		}
 
+		if result.Commands > 0 || result.Skills > 0 {
 			tool, _ := reg.GetTool(toolName)
-			u.Success(fmt.Sprintf("%s [%s]: removed %d commands, %d skills", tool.Name, catName, result.Commands, result.Skills))
-			removedCommands += result.Commands
-			removedSkills += result.Skills
+			lines = append(lines, fmt.Sprintf("✓ %s: removed %d commands, %d skills", tool.Name, result.Commands, result.Skills))
 		}
 	}
 
-	fmt.Println()
-	u.Success(fmt.Sprintf("Removed %d commands and %d skills total", removedCommands, removedSkills))
+	u.Summary(strings.Join(lines, "\n"))
 
 	return nil
 }
@@ -389,101 +285,69 @@ func runList(cmd *cobra.Command, args []string) error {
 	projectRoot := getProjectRoot()
 	tools := reg.GetToolNames()
 	sort.Strings(tools)
-	categories := reg.GetCategoryNames()
-	sort.Strings(categories)
+	commands := reg.GetAllCommands()
+	skills := reg.GetAllSkills()
 
-	// Check installation status per category per tool
+	u.Header("\nAvailable Content")
+	fmt.Printf("  Commands: %d\n", len(commands))
+	fmt.Printf("  Skills:   %d\n", len(skills))
+
+	// Check installation status per tool
 	type installStatus struct {
 		global bool
 		local  bool
 	}
 
-	// category -> tool -> status
-	catStatus := make(map[string]map[string]installStatus)
-	for _, catName := range categories {
-		catStatus[catName] = make(map[string]installStatus)
-	}
+	u.Header("\nInstallation Status")
+	fmt.Println("G=global  L=local  GL=both\n")
 
 	for _, toolKey := range tools {
 		tool, _ := reg.GetTool(toolKey)
 		globalPath := tool.ResolveGlobalPath()
 		localPath := tool.ResolveLocalPath(projectRoot)
 
-		for _, catName := range categories {
-			cat, _ := reg.GetCategory(catName)
-			status := installStatus{}
+		status := installStatus{}
 
-			// Check if any command from this category is installed
-			for _, c := range cat.Commands {
-				cmdPath := tool.Conventions.CommandPath(c)
-				if _, err := os.Stat(filepath.Join(globalPath, cmdPath)); err == nil {
-					status.global = true
-				}
-				if _, err := os.Stat(filepath.Join(localPath, cmdPath)); err == nil {
-					status.local = true
-				}
+		// Check if any command is installed
+		for _, c := range commands {
+			cmdPath := tool.Conventions.CommandPath(c)
+			if _, err := os.Stat(filepath.Join(globalPath, cmdPath)); err == nil {
+				status.global = true
+			}
+			if _, err := os.Stat(filepath.Join(localPath, cmdPath)); err == nil {
+				status.local = true
+			}
+		}
+
+		// Check if any skill is installed
+		for _, s := range skills {
+			skillPath := tool.Conventions.SkillPath(s)
+			globalSkillPath := filepath.Join(globalPath, skillPath)
+			localSkillPath := filepath.Join(localPath, skillPath)
+
+			if filepath.Ext(skillPath) != ".md" {
+				globalSkillPath = filepath.Dir(globalSkillPath)
+				localSkillPath = filepath.Dir(localSkillPath)
 			}
 
-			// Check if any skill from this category is installed
-			for _, s := range cat.Skills {
-				skillPath := tool.Conventions.SkillPath(s)
-				globalSkillPath := filepath.Join(globalPath, skillPath)
-				localSkillPath := filepath.Join(localPath, skillPath)
-
-				if filepath.Ext(skillPath) != ".md" {
-					globalSkillPath = filepath.Dir(globalSkillPath)
-					localSkillPath = filepath.Dir(localSkillPath)
-				}
-
-				if _, err := os.Stat(globalSkillPath); err == nil {
-					status.global = true
-				}
-				if _, err := os.Stat(localSkillPath); err == nil {
-					status.local = true
-				}
+			if _, err := os.Stat(globalSkillPath); err == nil {
+				status.global = true
 			}
-
-			catStatus[catName][toolKey] = status
+			if _, err := os.Stat(localSkillPath); err == nil {
+				status.local = true
+			}
 		}
-	}
 
-	statusIcon := func(s installStatus) string {
-		if s.global && s.local {
-			return "GL"
-		} else if s.global {
-			return "G "
-		} else if s.local {
-			return " L"
+		statusStr := "  "
+		if status.global && status.local {
+			statusStr = "GL"
+		} else if status.global {
+			statusStr = "G "
+		} else if status.local {
+			statusStr = " L"
 		}
-		return "  "
-	}
 
-	u.Header("\nInstallation Status")
-	fmt.Println("G=global  L=local  GL=both\n")
-
-	// Build tool header
-	toolAbbr := make([]string, len(tools))
-	for i, t := range tools {
-		tool, _ := reg.GetTool(t)
-		abbr := tool.Name
-		if len(abbr) > 4 {
-			abbr = abbr[:4]
-		}
-		toolAbbr[i] = fmt.Sprintf("%-4s", abbr)
-	}
-
-	fmt.Printf("%-10s %s\n", "", strings.Join(toolAbbr, " "))
-	fmt.Printf("%-10s %s\n", "", strings.Repeat("---- ", len(tools)))
-
-	for _, catName := range categories {
-		cat, _ := reg.GetCategory(catName)
-		statuses := make([]string, len(tools))
-		for i, t := range tools {
-			s := catStatus[catName][t]
-			statuses[i] = fmt.Sprintf("[%s]", statusIcon(s))
-		}
-		fmt.Printf("%-10s %s\n", catName, strings.Join(statuses, " "))
-		fmt.Printf("%-10s %d commands, %d skills\n", "", len(cat.Commands), len(cat.Skills))
+		fmt.Printf("  [%s] %s\n", statusStr, tool.Name)
 	}
 
 	fmt.Println()
@@ -500,7 +364,7 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 		u.Error(fmt.Sprintf("Config: %v", err))
 		return nil
 	}
-	u.Success("Config: tools.yaml and extensions.yaml loaded (embedded)")
+	u.Success("Config: tools.yaml loaded (embedded)")
 
 	// Check gum (try running it to handle mise/shim scenarios)
 	gumCmd := exec.Command("gum", "--version")
@@ -593,7 +457,7 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 
 	projectRoot := getProjectRoot()
 	tools := reg.GetToolNames()
-	categories := reg.GetCategoryNames()
+	commands := reg.GetAllCommands()
 
 	// Find what's currently installed and refresh symlinks
 	inst := installer.New(reg, projectRoot)
@@ -607,39 +471,35 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 		globalPath := tool.ResolveGlobalPath()
 		localPath := tool.ResolveLocalPath(projectRoot)
 
-		for _, catName := range categories {
-			cat, _ := reg.GetCategory(catName)
-
-			// Check if category is installed globally
-			globalInstalled := false
-			for _, c := range cat.Commands {
-				cmdPath := tool.Conventions.CommandPath(c)
-				if _, err := os.Stat(filepath.Join(globalPath, cmdPath)); err == nil {
-					globalInstalled = true
-					break
-				}
+		// Check if installed globally (check first command)
+		globalInstalled := false
+		for _, c := range commands {
+			cmdPath := tool.Conventions.CommandPath(c)
+			if _, err := os.Stat(filepath.Join(globalPath, cmdPath)); err == nil {
+				globalInstalled = true
+				break
 			}
+		}
 
-			// Check if category is installed locally
-			localInstalled := false
-			for _, c := range cat.Commands {
-				cmdPath := tool.Conventions.CommandPath(c)
-				if _, err := os.Stat(filepath.Join(localPath, cmdPath)); err == nil {
-					localInstalled = true
-					break
-				}
+		// Check if installed locally
+		localInstalled := false
+		for _, c := range commands {
+			cmdPath := tool.Conventions.CommandPath(c)
+			if _, err := os.Stat(filepath.Join(localPath, cmdPath)); err == nil {
+				localInstalled = true
+				break
 			}
+		}
 
-			// Refresh installations
-			if globalInstalled {
-				if _, err := inst.Install(toolKey, installer.ScopeGlobal, catName); err == nil {
-					refreshedCount++
-				}
+		// Refresh installations
+		if globalInstalled {
+			if _, err := inst.Install(toolKey, installer.ScopeGlobal); err == nil {
+				refreshedCount++
 			}
-			if localInstalled {
-				if _, err := inst.Install(toolKey, installer.ScopeLocal, catName); err == nil {
-					refreshedCount++
-				}
+		}
+		if localInstalled {
+			if _, err := inst.Install(toolKey, installer.ScopeLocal); err == nil {
+				refreshedCount++
 			}
 		}
 	}

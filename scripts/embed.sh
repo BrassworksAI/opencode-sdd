@@ -9,7 +9,6 @@ rm -rf "$EMBED_DIR"
 mkdir -p "$EMBED_DIR"
 
 cp "$ROOT_DIR/tools.yaml" "$EMBED_DIR/"
-cp "$ROOT_DIR/extensions.yaml" "$EMBED_DIR/"
 cp -r "$ROOT_DIR/repository" "$EMBED_DIR/"
 
 echo "Embedded content prepared in $EMBED_DIR"

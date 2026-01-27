@@ -54,21 +54,19 @@ func (i *Installer) cacheRoot(scope Scope) string {
 	return filepath.Join(i.ProjectRoot, ".agents")
 }
 
-func (i *Installer) Install(toolName string, scope Scope, category string) (*InstallResult, error) {
+func (i *Installer) Install(toolName string, scope Scope) (*InstallResult, error) {
 	tool, ok := i.Registry.GetTool(toolName)
 	if !ok {
 		return nil, fmt.Errorf("unknown tool: %s", toolName)
-	}
-
-	cat, ok := i.Registry.GetCategory(category)
-	if !ok {
-		return nil, fmt.Errorf("unknown category: %s", category)
 	}
 
 	result := &InstallResult{
 		Tool:  toolName,
 		Scope: scope,
 	}
+
+	commands := i.Registry.GetAllCommands()
+	skills := i.Registry.GetAllSkills()
 
 	scopes := []Scope{scope}
 	if scope == ScopeBoth {
@@ -86,7 +84,7 @@ func (i *Installer) Install(toolName string, scope Scope, category string) (*Ins
 		}
 
 		// Install commands
-		for _, cmd := range cat.Commands {
+		for _, cmd := range commands {
 			if err := i.installCommand(cmd, cache, target, tool.Conventions); err != nil {
 				result.Errors = append(result.Errors, fmt.Errorf("command %s: %w", cmd, err))
 			} else {
@@ -95,7 +93,7 @@ func (i *Installer) Install(toolName string, scope Scope, category string) (*Ins
 		}
 
 		// Install skills
-		for _, skill := range cat.Skills {
+		for _, skill := range skills {
 			if err := i.installSkill(skill, cache, target, tool.Conventions); err != nil {
 				result.Errors = append(result.Errors, fmt.Errorf("skill %s: %w", skill, err))
 			} else {
@@ -211,21 +209,19 @@ func writeFile(dest string, data []byte) error {
 	return os.WriteFile(dest, data, 0644)
 }
 
-func (i *Installer) Uninstall(toolName string, scope Scope, category string) (*InstallResult, error) {
+func (i *Installer) Uninstall(toolName string, scope Scope) (*InstallResult, error) {
 	tool, ok := i.Registry.GetTool(toolName)
 	if !ok {
 		return nil, fmt.Errorf("unknown tool: %s", toolName)
-	}
-
-	cat, ok := i.Registry.GetCategory(category)
-	if !ok {
-		return nil, fmt.Errorf("unknown category: %s", category)
 	}
 
 	result := &InstallResult{
 		Tool:  toolName,
 		Scope: scope,
 	}
+
+	commands := i.Registry.GetAllCommands()
+	skills := i.Registry.GetAllSkills()
 
 	scopes := []Scope{scope}
 	if scope == ScopeBoth {
@@ -243,12 +239,14 @@ func (i *Installer) Uninstall(toolName string, scope Scope, category string) (*I
 		cache := i.cacheDir(s)
 
 		// Uninstall commands
-		for _, cmd := range cat.Commands {
+		for _, cmd := range commands {
 			destPath := tool.Conventions.CommandPath(cmd)
 			dest := filepath.Join(target, destPath)
-			if err := os.RemoveAll(dest); err == nil {
-				result.Commands++
-				cleanEmptyParents(filepath.Dir(dest), target)
+			if _, err := os.Lstat(dest); err == nil {
+				if err := os.RemoveAll(dest); err == nil {
+					result.Commands++
+					cleanEmptyParents(filepath.Dir(dest), target)
+				}
 			}
 			// Also remove from cache
 			cachePath := filepath.Join(cache, "commands", cmd+".md")
@@ -256,7 +254,7 @@ func (i *Installer) Uninstall(toolName string, scope Scope, category string) (*I
 		}
 
 		// Uninstall skills
-		for _, skill := range cat.Skills {
+		for _, skill := range skills {
 			destPath := tool.Conventions.SkillPath(skill)
 			dest := filepath.Join(target, destPath)
 
@@ -266,17 +264,21 @@ func (i *Installer) Uninstall(toolName string, scope Scope, category string) (*I
 
 			if isSingleFile {
 				// Single-file skill - remove the .md file
-				if err := os.RemoveAll(dest); err == nil {
-					result.Skills++
-					cleanEmptyParents(filepath.Dir(dest), target)
+				if _, err := os.Lstat(dest); err == nil {
+					if err := os.RemoveAll(dest); err == nil {
+						result.Skills++
+						cleanEmptyParents(filepath.Dir(dest), target)
+					}
 				}
 			} else {
 				// Directory-based skill - the symlink is at the skill directory level
 				// e.g., for skills/{name}/SKILL.md, the symlink is at skills/{name}
 				skillDir := filepath.Dir(dest)
-				if err := os.RemoveAll(skillDir); err == nil {
-					result.Skills++
-					cleanEmptyParents(filepath.Dir(skillDir), target)
+				if _, err := os.Lstat(skillDir); err == nil {
+					if err := os.RemoveAll(skillDir); err == nil {
+						result.Skills++
+						cleanEmptyParents(filepath.Dir(skillDir), target)
+					}
 				}
 			}
 			// Also remove from cache
