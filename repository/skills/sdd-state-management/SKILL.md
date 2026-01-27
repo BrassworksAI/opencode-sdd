@@ -1,39 +1,75 @@
 ---
 name: sdd-state-management
-description: SDD state tracking - phases, gates, lanes, and state.md structure
+description: SDD state tracking - phases, gates, lanes, and TOML-based state management
 ---
 
 # SDD State Management
 
-This skill covers how SDD tracks change set state and enforces phase gates.
+This skill covers how SDD tracks change set state and enforces phase gates using TOML files and CLI commands.
 
 ## State File
 
-Every change set has a state file at `changes/<name>/state.md`:
+Every change set has a state file at `changes/<name>/state.toml`:
 
-```markdown
-# SDD State: <name>
+```toml
+[change]
+name = "my-feature"
+lane = "full"  # full | vibe | bug
+created_at = 2026-01-27T10:00:00Z
 
-## Lane
+[phase]
+current = "plan"
+status = "in_progress"  # in_progress | complete | blocked
 
-<full|vibe|bug>
+[pending]
+items = [
+  "Waiting on API design decision"
+]
 
-## Phase
-
-<current-phase>
-
-## Phase Status
-
-in_progress | complete
-
-## Pending
-
-<only unresolved items>
-
-## Notes
-
-<freeform - decisions, progress, context - cleared when phase complete>
+[notes]
+content = """
+Working through auth endpoint design.
+Decided to use JWT over sessions.
+"""
 ```
+
+## Tasks File
+
+Tasks are stored in `changes/<name>/tasks.toml`:
+
+```toml
+[task.db-models]
+title = "Foundation - DB models and migrations"
+description = "Add user tables and migrations."
+status = "complete"  # pending | in_progress | complete
+requirements = [
+  "When a new user is created, the system shall persist profile fields."
+]
+
+[task.auth-endpoint]
+title = "Auth endpoint implementation"
+description = "Build the authentication REST endpoint."
+status = "in_progress"
+requirements = [
+  "WHEN the user submits credentials the system SHALL validate them."
+]
+```
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `ae sdd init <name> --lane <full\|vibe\|bug>` | Create change set with state.toml |
+| `ae sdd status [name]` | Show styled status UI |
+| `ae sdd phase next` | Advance to next phase |
+| `ae sdd phase set <phase>` | Set current phase |
+| `ae sdd task list` | List all tasks |
+| `ae sdd task add <short-name>` | Add new task |
+| `ae sdd task start <short-name>` | Start a task |
+| `ae sdd task complete <short-name>` | Complete a task |
+| `ae sdd pending add "item"` | Add pending item |
+| `ae sdd pending clear <index>` | Remove pending item |
+| `ae sdd notes set "content"` | Update notes |
 
 ## Lanes Overview
 
