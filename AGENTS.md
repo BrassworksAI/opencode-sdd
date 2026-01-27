@@ -1,7 +1,15 @@
-# Agent Extensions Rules
+# Agent Extensions
 
-This repository ships commands, skills, and scripts for multiple agentic tools.
+Go CLI that installs commands, skills, and hooks for AI coding agents.
 
-## Markdown Validation
+## Quick Reference
 
-- You must run `markdownlint -f .` or `markdownlint -f <filename>.md` every time you finish editing a markdown file to find and then fix issues.
+- **Language:** Go
+- **Build:** `go build -o bin/ae ./cmd/ae`
+- **Test:** `go test ./internal/... -v`
+- **Lint Markdown:** `markdownlint -f .`
+
+## Guidelines
+
+- [Coding Standards](.agents/rules/coding.md)
+- [Testing Requirements](.agents/rules/testing.md)

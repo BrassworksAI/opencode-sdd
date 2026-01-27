@@ -1,0 +1,72 @@
+tools:
+  claude-code:
+    name: Claude Code
+    global_path: ~/.claude
+    local_path: .claude
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: commands/{name}.md
+
+  codex:
+    name: Codex
+    global_path: ~/.codex
+    local_path: .codex
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: prompts/{name}.md
+
+  opencode:
+    name: OpenCode
+    global_path: ~/.config/opencode
+    local_path: .opencode
+    conventions:
+      skills: skill/{name}/SKILL.md
+      commands: command/{name}.md
+
+  augment:
+    name: Augment
+    global_path: ~/.augment
+    local_path: .augment
+    conventions:
+      skills: skills/{name}.md
+      commands: commands/{name}.md
+
+  cursor:
+    name: Cursor
+    global_path: ~/.cursor
+    local_path: .cursor
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: commands/{name}.md
+
+  windsurf:
+    name: Windsurf
+    global_path: ~/.codeium/windsurf
+    local_path: .windsurf
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: workflows/{name}.md
+
+  cline:
+    name: Cline
+    global_path: ~/Documents/Cline
+    local_path: .clinerules
+    conventions:
+      skills: Skills/{name}/SKILL.md
+      commands: workflows/{name}.md
+
+  kilo-code:
+    name: Kilo Code
+    global_path: ~/.kilocode
+    local_path: .kilocode
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: workflows/{name}.md
+
+  droid:
+    name: Droid
+    global_path: ~/.factory
+    local_path: .factory
+    conventions:
+      skills: skills/{name}/SKILL.md
+      commands: commands/{name}.md

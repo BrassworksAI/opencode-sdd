@@ -19,3 +19,10 @@ Thumbs.db
 *.temp
 .osgrep
 .cache/
+
+# Go
+bin/
+dist/
+
+# Embedded content (generated at build time)
+internal/embedded/content/

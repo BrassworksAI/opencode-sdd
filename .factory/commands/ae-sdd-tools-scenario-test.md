@@ -1,0 +1,1 @@
+/Users/shanepadgett/dev/tools/agent-extensions/.agents/.cache/agent-extensions/commands/ae-sdd-tools-scenario-test.md
